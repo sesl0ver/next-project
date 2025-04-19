@@ -4,12 +4,13 @@ import { Game } from "@/types/Game";
 
 
 export async function getGame (id: string): Promise<Game> {
-    const response = await fetch(`http://localhost:3333/games/${id}`, { cache: 'force-cache', next: { revalidate: 1 } });
+    const response = await fetch(`${process.env.API_URL}/games/${id}`, { cache: 'force-cache', next: { revalidate: 1 } });
     return (!response || typeof response !== 'object') ? null : response.json();
 }
 
-export default async function GameHeader(params: { id: string }) {
-    const { app_id, title, genres, capsule_image } = await getGame(params['id']);
+export default async function GameHeader(params: { id: string, page: string }) {
+    const { id, page } = params;
+    const { app_id, title, genres, capsule_image } = await getGame(id);
     return (
         <>
             <div className="flex items-start justify-between mb-6">
@@ -39,10 +40,6 @@ export default async function GameHeader(params: { id: string }) {
                     <Link href={`https://store.steampowered.com/app/${app_id}`} target="_blank" title="스팀상점 바로가기" className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-700 text-white hover:text-gray-800">
                         <i className="ri-steam-fill"></i>
                         <RiSteamFill />
-                    </Link>
-                    <Link href="/" title="돌아가기" className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-700 text-white hover:text-green-400">
-                        <i className="ri-arrow-left-s-line"></i>
-                        <RiArrowLeftLine />
                     </Link>
                 </div>
             </div>

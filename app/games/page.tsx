@@ -1,19 +1,23 @@
 import GameBox from "./component/game-box";
 import Side from "@/component/Side";
-import {Game} from "@/types/Game";
-import Loading from "@/component/Loading";
+import type {GamePage, Game} from "@/types/Game";
+import Pagination from "@/component/Pagination";
+import { GamePageProps } from "@/types/Game";
+
+export const dynamic = 'force-dynamic';
 
 export const metadata = {
     title: 'Game'
 }
 
-async function getGames(): Promise<Game[]> {
-    const response = await fetch('http://localhost:3333/games');
+async function getGames(page: number = 1): Promise<GamePage> {
+    const response = await fetch(`${process.env.API_URL}/games?page=${page}`);
     return response.json();
 }
 
-export default async function GamePage() {
-    const games: Game[] = await getGames();
+export default async function GamePage({ searchParams }: GamePageProps) {
+    const { page } = await searchParams;
+    const data: GamePage = await getGames(Number(page) ?? 1);
     return (
         <div className="grid grid-cols-12 gap-6">
             <Side />
@@ -21,14 +25,15 @@ export default async function GamePage() {
                 <div className="bg-gray-800 rounded-lg p-4 mb-6">
                     <div className="grid lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-1 gap-6 mb-6">
                         {
-                            games.map((g: Game) => {
+                            data.games.map((g: Game) => {
                                 return (
-                                    <GameBox key={g.app_id} game={g} />
+                                    <GameBox key={g.app_id} game={g}/>
                                 )
                             })
                         }
                     </div>
                 </div>
+                <Pagination data={data} />
             </div>
         </div>
     )

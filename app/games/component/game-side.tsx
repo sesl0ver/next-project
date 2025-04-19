@@ -12,7 +12,7 @@ async function checkImageExists(url: string): Promise<boolean> {
 }
 
 export default async function GameSide(params: { id: string }) {
-    const { app_id, title, header_image, developers, publishers, release_date, short_description, screenshots } = await getGame(params['id']);
+    const { app_id, title, header_image, developers, publishers, release_date, short_description } = await getGame(params['id']);
     const imageUrl = `https://steamcdn-a.akamaihd.net/steam/apps/${app_id}/library_600x900_2x.jpg`;
     const exists = await checkImageExists(imageUrl);
     return (

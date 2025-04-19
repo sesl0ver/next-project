@@ -1,15 +1,17 @@
 "use client";
 
-import { useLoading } from "@/lib/LoadingContext";
+import { useAtom } from 'jotai';
+import { loadingAtom } from '@/atoms/loadingAtom';
 
 export function LoadingOverlay() {
-    const { isLoading } = useLoading();
+    const [isLoading] = useAtom(loadingAtom);
 
     if (!isLoading) return null;
 
     return (
-        <div className="fixed inset-0 bg-black opacity-50 z-[9999] flex items-center justify-center">
-            <div className="text-white text-xl animate-pulse">로딩 중...</div>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+            <div className="w-full h-full bg-black opacity-75"></div>
+            <div className="absolute text-white text-xl animate-pulse"><img src="/bouncing-circles.svg" alt="Loading..." style={{width: '75px', height: '75px'}} /></div>
         </div>
     );
 }

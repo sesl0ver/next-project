@@ -1,4 +1,4 @@
-export default async function Side() {
+export default function Side() {
     return (
         <div className="hidden md:block col-span-3">
             <div className="bg-gray-800 rounded-lg p-4 mb-6">
