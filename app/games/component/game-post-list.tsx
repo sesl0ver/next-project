@@ -1,13 +1,13 @@
 import Link from "next/link";
 import React from "react";
 import {RiMessage2Line, RiThumbUpLine} from '@remixicon/react';
-import { Categories } from "@/constants/categories";
+import {Categories} from "@/constants/categories";
 import Pagination from "@/component/Pagination";
 import {PostPage} from "@/types/Post";
+import {apiFetch} from "@/lib/apiFetch";
 
 async function getGamePosts(gameId: string, page: string): Promise<PostPage> {
-    const response = await fetch(`${process.env.API_URL}/games/posts/${gameId}?page=${page ?? 1}`);
-    return response.json();
+    return apiFetch(`${process.env.API_URL}/games/posts/${gameId}?page=${page ?? 1}`)
 }
 
 export default async function GamePostList(params: { gameId: string, page: string }) {

@@ -1,8 +1,9 @@
 import GameBox from "./component/game-box";
 import Side from "@/component/Side";
-import type {GamePage, Game} from "@/types/Game";
+import type {Game, GamePage} from "@/types/Game";
+import {GamePageProps} from "@/types/Game";
 import Pagination from "@/component/Pagination";
-import { GamePageProps } from "@/types/Game";
+import {apiFetch} from "@/lib/apiFetch";
 
 export const dynamic = 'force-dynamic';
 
@@ -11,8 +12,7 @@ export const metadata = {
 }
 
 async function getGames(page: number = 1): Promise<GamePage> {
-    const response = await fetch(`${process.env.API_URL}/games?page=${page}`);
-    return response.json();
+    return apiFetch(`${process.env.API_URL}/games?page=${page}`);
 }
 
 export default async function GamePage({ searchParams }: GamePageProps) {

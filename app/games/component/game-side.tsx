@@ -1,11 +1,11 @@
 import {getGame} from "./game-header";
-import {ExpandableList} from "@/component/ExpandableList";
-import Link from "next/link";
+import {apiFetch} from "@/lib/apiFetch";
+import {ApiResponse} from "@/types/ApiFetch";
 
 async function checkImageExists(url: string): Promise<boolean> {
     try {
-        const res = await fetch(url, { method: 'HEAD', cache: 'force-cache', next: { revalidate: 86400 } });
-        return res.ok;
+        const res: ApiResponse<null> = await apiFetch(url, { method: 'HEAD', cache: 'force-cache', next: { revalidate: 86400 } });
+        return res.success;
     } catch (err) {
         return false;
     }

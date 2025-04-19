@@ -4,14 +4,14 @@ import {RiUserLine, RiEyeLine, RiThumbUpLine, RiMessageLine, RiShareLine, RiFlag
 import {getRelativeTime} from "@/lib/RelativeTime";
 import {Categories} from "@/constants/categories";
 import MarkdownReader from "@/component/MarkdownReader";
+import {apiFetch} from "@/lib/apiFetch";
 
 export const metadata = {
     title: 'Game'
 }
 
-async function getGameRead (post_id: string) {
-    const response = await fetch(`${process.env.API_URL}/games/read/${post_id}`, { cache: 'force-cache', next: { revalidate: 1 } });
-    return (!response || typeof response !== 'object') ? null : response.json();
+async function getGameRead (post_id: string): Promise<GameRead> {
+    return apiFetch(`${process.env.API_URL}/games/read/${post_id}`, { cache: 'force-cache', next: { revalidate: 1 } });
 }
 
 export default async function GameReadPage({ params }: { params: Promise<{ id: string }>}) {
