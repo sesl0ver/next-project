@@ -2,8 +2,8 @@ import GameSide from "@/app/games/component/game-side";
 import GamePostWrite from "@/app/games/component/game-post-write";
 import {Suspense} from "react";
 
-export default async function GamePostWritePage({ params }) {
-    const { id } = await params;
+export default function GamePostWritePage({ params }) {
+    const { id } = params;
     return (
         <div className="grid grid-cols-12 gap-6">
             <Suspense>

@@ -1,8 +1,5 @@
 @import 'tailwindcss';
-
-body {
-    @apply bg-gray-900 min-h-screen text-gray-100;
-}
+@custom-variant dark (&:where(.dark, .dark *));
 
 a:focus {
     outline: none;

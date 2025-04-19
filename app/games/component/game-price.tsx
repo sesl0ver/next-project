@@ -2,7 +2,7 @@ import {price} from "@/types/Game";
 import Link from "next/link";
 
 async function getPrice (id: string): Promise<any> {
-    const response = await fetch(`http://localhost:3333/games/price/${id}`, { cache: 'force-cache', next: { revalidate: 1 } });
+    const response = await fetch(`${process.env.API_URL}/games/price/${id}`, { cache: 'force-cache', next: { revalidate: 86400 } });
     return response.json();
 }
 
