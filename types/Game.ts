@@ -19,7 +19,7 @@ export interface GamePage {
     games: Game[]
 }
 
-export interface price {
+export interface Price {
     id: string;
     lowPrice: number; // 역대 최저가
     lowCut: number; // 역대 할인율

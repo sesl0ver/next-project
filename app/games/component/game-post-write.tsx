@@ -23,6 +23,8 @@ import { usePreventNavigation } from '@/hooks/usePreventNavigation';
 import { isDirtyAtom } from '@/atoms/isDirtyAtom';
 import {usePreventBackNavigation} from "@/hooks/usePreventBackNavigation";
 import {usePreventLinkNavigation} from "@/hooks/usePreventLinkNavigation";
+import {apiFetch} from "@/lib/apiFetch";
+import {ApiResponse} from "@/types/ApiFetch";
 
 
 export default function GamePostWrite({ id }: {id: string}) {
@@ -78,11 +80,11 @@ export default function GamePostWrite({ id }: {id: string}) {
         }
         try {
             setLoading(true);
-            const res = await fetch(`${process.env.API_URL}/games/post`, {
+            const res: ApiResponse<null> = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/games/post`, {
                 method: 'POST',
                 body: formData,
             });
-            if (res.ok) {
+            if (res.success) {
                 router.push(`/games/${id}`);
                 setLoading(false);
             }

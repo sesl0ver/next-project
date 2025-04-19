@@ -18,7 +18,7 @@ export default function GameDetailPage({ params, searchParams }: PostPageProps) 
             <div className="col-span-9">
                 <div className="rounded-lg p-4 mb-6">
                     <Suspense fallback={<Loading />}>
-                        <GameHeader id={id} page={page} />
+                        <GameHeader id={id} />
                     </Suspense>
                     <GameInformation id={id} page={page} />
                 </div>

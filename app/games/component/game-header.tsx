@@ -1,15 +1,15 @@
 import Link from "next/link";
-import {RiHeartLine, RiShareLine, RiSteamFill, RiArrowLeftLine} from "@remixicon/react";
+import {RiHeartLine, RiShareLine, RiSteamFill} from "@remixicon/react";
 import { Game } from "@/types/Game";
+import {apiFetch} from "@/lib/apiFetch";
 
 
 export async function getGame (id: string): Promise<Game> {
-    const response = await fetch(`${process.env.API_URL}/games/${id}`, { cache: 'force-cache', next: { revalidate: 1 } });
-    return (!response || typeof response !== 'object') ? null : response.json();
+    return apiFetch(`${process.env.API_URL}/games/${id}`, { cache: 'force-cache', next: { revalidate: 86400 } });
 }
 
-export default async function GameHeader(params: { id: string, page: string }) {
-    const { id, page } = params;
+export default async function GameHeader(params: { id: string }) {
+    const { id } = params;
     const { app_id, title, genres, capsule_image } = await getGame(id);
     return (
         <>
