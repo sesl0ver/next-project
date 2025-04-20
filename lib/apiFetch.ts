@@ -11,11 +11,8 @@ export async function apiFetch<T>(url: string, options: ApiOptions = {}): Promis
 
   const fetchOptions: RequestInit = {
     method,
-    headers: {
-      'Content-Type': 'application/json',
-      ...headers,
-    },
-    body: body ? JSON.stringify(body) : undefined,
+    headers: headers,
+    body: body ? body : undefined,
     cache,
     next,
   };

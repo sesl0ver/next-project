@@ -214,8 +214,7 @@ export default function GamePostWrite({ id }: {id: string}) {
 
                     <div className="flex justify-end space-x-3">
                         <button onClick={goBack} className="bg-gray-700 hover:bg-gray-600 text-white px-6 py-3 !rounded-button whitespace-nowrap">취소</button>
-                        <button onClick={postProcess}
-                            className="bg-indigo-900 hover:bg-indigo-800/90 text-white px-6 py-3 !rounded-button whitespace-nowrap">등록</button>
+                        <button onClick={postProcess} className="bg-indigo-900 hover:bg-indigo-800/90 text-white px-6 py-3 !rounded-button whitespace-nowrap">등록</button>
                     </div>
                 </div>
             </div>
