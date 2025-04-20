@@ -89,7 +89,7 @@ export default async function GameReadPage({ params, searchParams }: PostPagePro
                                         <span className="flex items-center space-x-1"><RiMessageLine size={18} /><span>1,245</span></span>
                                     </div>
                                     <div className="prose prose-invert max-w-none">
-                                        <MarkdownReader value={read.contents}/>
+                                        <MarkdownReader value={read.contents} />
                                     </div>
                                 </div>
                                 <div className="flex items-center justify-between mt-8 pt-8 border-t border-gray-700">

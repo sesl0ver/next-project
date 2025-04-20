@@ -6,12 +6,12 @@ import {
     RiDeleteBinLine,
     RiImageLine,
     RiInformationLine,
-    RiUpload2Line
+    RiUpload2Line,
+    RiYoutubeFill
 } from '@remixicon/react';
-import Link from "next/link";
 import React, {useState,useEffect} from "react";
 import { useRouter } from "next/navigation";
-import MDEditor from '@uiw/react-md-editor';
+import MDEditor, { commands } from '@uiw/react-md-editor';
 import { Categories } from "@/constants/categories";
 import {filesize} from "filesize";
 import {UploadFile} from "@/types/UploadFile";
@@ -24,7 +24,8 @@ import { isDirtyAtom } from '@/atoms/isDirtyAtom';
 import {usePreventBackNavigation} from "@/hooks/usePreventBackNavigation";
 import {usePreventLinkNavigation} from "@/hooks/usePreventLinkNavigation";
 import {apiFetch} from "@/lib/apiFetch";
-import {ApiResponse} from "@/types/ApiFetch";
+import rehypeSanitize from "rehype-sanitize";
+import {getYouTubeEmbedUrl, isYouTubeLink} from "@/lib/utils";
 
 
 export default function GamePostWrite({ id }: {id: string}) {
@@ -59,12 +60,17 @@ export default function GamePostWrite({ id }: {id: string}) {
         }
     }, [title, contents, files]);
 
+    function isValidInput(input: string): boolean {
+        const cleaned = input.replace(/[\u200B-\u200D\uFEFF\s]/g, '');
+        return cleaned.length > 0;
+    }
+
     const postProcess = async () => {
-        if (title.length < 1) {
+        if (!isValidInput(title)) {
             toast.error("제목을 입력하세요.");
             return;
         }
-        if (contents.length < 1) {
+        if (!isValidInput(contents)) {
             toast.error("내용을 입력하세요.");
             return;
         }
@@ -80,16 +86,14 @@ export default function GamePostWrite({ id }: {id: string}) {
         }
         try {
             setLoading(true);
-            const res: ApiResponse<null> = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/games/post`, {
+            await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/games/post`, {
                 method: 'POST',
                 body: formData,
             });
-            if (res.success) {
-                router.push(`/games/${id}`);
-                setLoading(false);
-            }
+            router.push(`/games/${id}`);
         } catch (e) {
-            console.error(e);
+            toast.error(e.message);
+        } finally {
             setLoading(false);
         }
     }
@@ -118,6 +122,21 @@ export default function GamePostWrite({ id }: {id: string}) {
         setFiles(files.filter((_, i) => i !== x));
     }
 
+    const youtube = {
+        name: 'Youtube',
+        keyCommand: 'youtube',
+        buttonProps: { 'aria-label': 'Insert Youtube Video.' },
+        icon: (
+            <RiYoutubeFill size={15} style={{ margin:'-7px -3px' }} />
+        ),
+        execute: (state, api) => {
+            let youtubeLink = `[@youtube](${state.selectedText}\n`;
+            if (!state.selectedText) {
+                youtubeLink = `[@youtube](URL)\n`;
+            }
+            api.replaceSelection(youtubeLink);
+        },
+    };
 
     return (
         <div className="max-w-5xl mx-auto">
@@ -149,13 +168,50 @@ export default function GamePostWrite({ id }: {id: string}) {
 
                     <div className="mb-6">
                         <label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-2">제목</label>
-                        <input type="text" id="title" placeholder="제목을 입력하세요" onChange={e => setTitle(e.target.value)}
+                        <input type="text" id="title" placeholder="제목을 입력하세요" value={title} onChange={e => setTitle(e.target.value)}
                                className="bg-gray-700 text-gray-200 w-full px-4 py-3 rounded border-none focus:outline-none focus:ring-2 focus:ring-primary"/>
                     </div>
 
                     <div className="mb-6">
                         <div className="container text-xl">
-                            <MDEditor value={contents} onChange={setContents} height={400} />
+                            <MDEditor value={contents} onChange={setContents} height={400}
+                                      commands={[
+                                          commands.bold, commands.italic, commands.strikethrough, commands.hr, commands.title,
+                                          commands.divider,
+                                          commands.link, commands.quote, commands.code, commands.codeBlock, commands.comment, commands.image, commands.table,
+                                          youtube,
+                                          commands.divider,
+                                          commands.unorderedListCommand, commands.orderedListCommand, commands.checkedListCommand,
+                                          commands.divider,
+                                          commands.help,
+                                      ]}
+                                      preview='edit'
+                                      previewOptions={{
+                                          rehypePlugins: [[rehypeSanitize]],
+                                          components:{
+                                              a: ({ href, children }) => {
+                                                  if (href && isYouTubeLink(href)) {
+                                                      const embedUrl = getYouTubeEmbedUrl(href);
+                                                      return embedUrl ? (
+                                                          <iframe
+                                                              width="560"
+                                                              height="315"
+                                                              src={embedUrl}
+                                                              title="YouTube video"
+                                                              frameBorder="0"
+                                                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                              allowFullScreen
+                                                              style={{ marginTop: '1rem', marginBottom: '1rem' }}
+                                                          />
+                                                      ) : (
+                                                          <a href={href}>{children}</a>
+                                                      );
+                                                  }
+                                                  return <a href={href}>{children}</a>;
+                                              },
+                                          }
+                                      }}
+                            />
                         </div>
                     </div>
 
