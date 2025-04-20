@@ -9,7 +9,7 @@ export default function ThemeToggle() {
 
     return (
         <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="align-middle">
-            {theme !== 'dark' ? <RiMoonFill /> : <RiSunFill />}
+            {theme !== 'dark' ? <RiMoonFill size={18} /> : <RiSunFill size={18} />}
         </button>
     );
 }

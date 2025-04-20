@@ -1,7 +1,3 @@
-export const metadata = {
-    title: 'Home'
-}
-
 export default function HomePage() {
     return (
         <div className="grid grid-cols-12 gap-6">

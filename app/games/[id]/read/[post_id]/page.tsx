@@ -1,27 +1,47 @@
 import {GameRead} from "@/types/Game";
-import GameSide from "@/app/games/component/game-side";
-import {RiUserLine, RiEyeLine, RiThumbUpLine, RiMessageLine, RiShareLine, RiFlagLine} from "@remixicon/react";
+import {RiEyeLine, RiFlagLine, RiMessageLine, RiShareLine, RiThumbUpLine, RiUserLine} from "@remixicon/react";
 import {getRelativeTime} from "@/lib/RelativeTime";
 import {Categories} from "@/constants/categories";
 import MarkdownReader from "@/component/MarkdownReader";
 import {apiFetch} from "@/lib/apiFetch";
-
-export const metadata = {
-    title: 'Game'
-}
+import React, {Suspense} from "react";
+import Loading from "@/component/SimpleLoading";
+import GamePrice from "@/app/games/component/game-price";
+import GameInformation from "@/app/games/component/game-information";
+import GameHeader from "@/app/games/component/game-header";
 
 async function getGameRead (post_id: string): Promise<GameRead> {
     return apiFetch(`${process.env.API_URL}/games/read/${post_id}`, { cache: 'force-cache', next: { revalidate: 1 } });
 }
 
-export default async function GameReadPage({ params }: { params: Promise<{ id: string }>}) {
-    const { id } = await params;
-    const read: GameRead = await getGameRead(id);
+export default async function GameReadPage({ params }: { params: Promise<{ id: string, post_id: string }>}) {
+    const { id, post_id } = await params;
+    const read: GameRead = await getGameRead(post_id);
     return (
         <div className="grid grid-cols-12 gap-6">
-            <GameSide id={String(read.app_id)} />
-            <div className="md:col-span-9 grid-cols-none">
-                <div className="rounded-lg mb-6">
+            <div className="hidden md:block col-span-3">
+                <Suspense>
+                    <GameInformation id={id} />
+                </Suspense>
+                <Suspense fallback={<Loading />}>
+                    <GamePrice id={String(id)} />
+                </Suspense>
+                <div className="bg-gray-800 rounded-lg p-4 mb-6">
+                    <h3 className="font-bold mb-4">비슷한 게임 추천</h3>
+                    <div className="space-y-4">
+                    </div>
+                </div>
+                <div className="bg-gray-800 rounded-lg p-4 mb-6">
+                    <h3 className="font-bold mb-4">최근 업데이트 게시글</h3>
+                    <div className="space-y-4">
+                    </div>
+                </div>
+            </div>
+            <div className="col-span-9">
+                <div className="rounded-lg p-4 mb-6">
+                    <Suspense fallback={<Loading />}>
+                        <GameHeader id={id} />
+                    </Suspense>
                     <div className="grid lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-1 gap-6 mb-6">
 
                         <div className="col-span-9">

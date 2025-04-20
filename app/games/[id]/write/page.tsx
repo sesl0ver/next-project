@@ -1,14 +1,32 @@
-import GameSide from "@/app/games/component/game-side";
+import GameInformation from "@/app/games/component/game-information";
 import GamePostWrite from "@/app/games/component/game-post-write";
-import {Suspense} from "react";
+import React, {Suspense, use} from "react";
+import Loading from "@/component/SimpleLoading";
+import GamePrice from "@/app/games/component/game-price";
+import {PostPageProps} from "@/types/Post";
 
-export default function GamePostWritePage({ params }) {
-    const { id } = params;
+export default function GamePostWritePage({ params }: PostPageProps) {
+    const { id, post_id } = use(params);
     return (
         <div className="grid grid-cols-12 gap-6">
-            <Suspense>
-                <GameSide id={id} />
-            </Suspense>
+            <div className="hidden md:block col-span-3">
+                <Suspense>
+                    <GameInformation id={id} />
+                </Suspense>
+                <Suspense fallback={<Loading />}>
+                    <GamePrice id={String(id)} />
+                </Suspense>
+                <div className="bg-gray-800 rounded-lg p-4 mb-6">
+                    <h3 className="font-bold mb-4">비슷한 게임 추천</h3>
+                    <div className="space-y-4">
+                    </div>
+                </div>
+                <div className="bg-gray-800 rounded-lg p-4 mb-6">
+                    <h3 className="font-bold mb-4">최근 업데이트 게시글</h3>
+                    <div className="space-y-4">
+                    </div>
+                </div>
+            </div>
             <div className="md:col-span-9 grid-cols-none">
                 <div className="py-4 mb-6">
                     <GamePostWrite id={id} />

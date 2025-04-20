@@ -1,30 +1,48 @@
-import {Suspense, use} from "react";
-import GamePostList from "@/app/games/component/game-post-list";
-import GamePrice from "@/app/games/component/game-price";
-import Loading from "@/component/Loading";
-import {PostPageProps} from "@/types/Post";
+import {getGame} from "./game-header";
+import {apiFetch} from "@/lib/apiFetch";
+import {ApiResponse} from "@/types/ApiFetch";
 
-export default function GameInformation(params: { id: string, page: string }) {
-    const { id, page } = params;
+async function checkImageExists(url: string): Promise<boolean> {
+    try {
+        const res: ApiResponse<null> = await apiFetch(url, { method: 'HEAD', cache: 'force-cache', next: { revalidate: 86400 } });
+        return res.success;
+    } catch (err) {
+        return false;
+    }
+}
+
+export default async function GameInformation(params: { id: string }) {
+    const { app_id, title, header_image, developers, publishers, release_date, short_description } = await getGame(params['id']);
+    const imageUrl = `https://steamcdn-a.akamaihd.net/steam/apps/${app_id}/library_600x900_2x.jpg`;
+    const exists = await checkImageExists(imageUrl);
     return (
-        <div className="grid grid-cols-12 gap-6">
-            <div className="col-span-9">
-                <Suspense fallback={<Loading />}>
-                    <GamePostList gameId={id} page={page} />
-                </Suspense>
-            </div>
+        <div className="hidden md:block col-span-3">
+            <div className="bg-gray-800 rounded-lg p-4 mb-6">
+                <div>
+                    <img src={(exists) ? imageUrl : header_image} alt={title} />
+                </div>
 
-            <div className="rounded-lg col-span-3 mb-6 space-y-4">
-                <div className="bg-gray-800 rounded-lg p-4">
-                    <h3 className="font-bold mb-4">스팀 상점 가격 정보</h3>
-                    <div className="space-y-2 text-sm">
-                        <Suspense fallback={<Loading />}>
-                            <GamePrice id={String(id)} />
-                        </Suspense>
+                <div className="py-1 text-sm" dangerouslySetInnerHTML={ {__html: short_description}}></div>
+
+                <div className="my-3 space-y-2 text-sm">
+                    <div>
+                        <p className="text-gray-400 text-xs">🔸개발사</p>
+                        <p>{developers.join(', ')}</p>
+                    </div>
+                    {
+                        (publishers) ? (
+                            <div>
+                                <p className="text-gray-400 text-xs">🔹배급사</p>
+                                <p>{publishers.join(', ')}</p>
+                            </div>
+                        ) : null
+                    }
+                    <div>
+                        <p className="text-gray-400 text-xs">▫️출시일</p>
+                        <p>{release_date}</p>
                     </div>
                 </div>
             </div>
-
         </div>
     )
 }

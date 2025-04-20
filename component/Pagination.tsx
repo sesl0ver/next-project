@@ -23,12 +23,12 @@ export default function Pagination({ data }: { data: GamePage | PostPage }) {
             <div className="flex items-center space-x-2">
                 <button onClick={() => goToPage(1)}
                         disabled={currentPage === 1}
-                        className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-700 hover:bg-gray-600 text-gray-400 cursor-pointer">
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-700 hover:bg-gray-600 text-gray-400">
                     <RiSkipLeftLine />
                 </button>
                 <button onClick={() => goToPage(Math.max(1, groupStart - groupSize))}
                         disabled={currentPage <= groupSize}
-                        className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-700 hover:bg-gray-600 text-gray-400 cursor-pointer">
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-700 hover:bg-gray-600 text-gray-400">
                     <RiArrowLeftDoubleLine />
                 </button>
 
@@ -36,7 +36,7 @@ export default function Pagination({ data }: { data: GamePage | PostPage }) {
                     const pageNum = groupStart + i;
                     return (
                         <button key={pageNum} onClick={() => goToPage(pageNum)}
-                            className={`w-10 h-10 flex items-center justify-center rounded-full cursor-pointer ${
+                            className={`w-10 h-10 flex items-center justify-center rounded-full ${
                                 pageNum === currentPage ? 'bg-blue-500' : 'bg-gray-700 hover:bg-gray-600'
                             }`}>
                             {pageNum}
@@ -46,12 +46,12 @@ export default function Pagination({ data }: { data: GamePage | PostPage }) {
 
                 <button onClick={() => goToPage(Math.min(totalPages, groupStart + groupSize))}
                         disabled={groupEnd === totalPages}
-                        className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-700 hover:bg-gray-600 text-gray-400 cursor-pointer">
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-700 hover:bg-gray-600 text-gray-400">
                     <RiArrowRightDoubleLine />
                 </button>
                 <button onClick={() => goToPage(totalPages)}
                         disabled={currentPage === totalPages}
-                        className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-700 hover:bg-gray-600 text-gray-400 cursor-pointer">
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-700 hover:bg-gray-600 text-gray-400">
                     <RiSkipRightLine />
                 </button>
             </div>

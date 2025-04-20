@@ -123,11 +123,9 @@ export default function GamePostWrite({ id }: {id: string}) {
         <div className="max-w-5xl mx-auto">
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center">
-                    <div className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center mr-3 hover:bg-gray-700">
-                        <div className="w-5 h-5 flex items-center justify-center">
-                            <button onClick={goBack}><RiArrowLeftLine /></button>
-                        </div>
-                    </div>
+                    <button onClick={goBack} className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center mr-3 hover:bg-gray-700">
+                        <RiArrowLeftLine />
+                    </button>
                     <h1 className="text-2xl font-bold text-white">글 작성</h1>
                 </div>
                 <div className="text-sm text-gray-400">

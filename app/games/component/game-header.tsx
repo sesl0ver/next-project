@@ -32,14 +32,14 @@ export default async function GameHeader(params: { id: string }) {
                 </div>
                 <div className="flex items-center space-x-3">
                     <Link href="#" title="관심등록" className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-700 text-white hover:text-pink-400">
-                        <RiHeartLine />
+                        <RiHeartLine size={18} />
                     </Link>
                     <Link href="#" title="공유하기" className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-700 text-white hover:text-yellow-400">
-                        <RiShareLine />
+                        <RiShareLine size={18} />
                     </Link>
                     <Link href={`https://store.steampowered.com/app/${app_id}`} target="_blank" title="스팀상점 바로가기" className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-700 text-white hover:text-gray-800">
                         <i className="ri-steam-fill"></i>
-                        <RiSteamFill />
+                        <RiSteamFill size={18} />
                     </Link>
                 </div>
             </div>

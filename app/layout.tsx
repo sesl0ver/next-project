@@ -22,7 +22,7 @@ export default function RootLayout({ children, }: { children: React.ReactNode })
       <html lang="ko" className="dark" suppressHydrationWarning>
       <head>
           <script dangerouslySetInnerHTML={{ __html: getThemeScript() }} />
-          <title></title>
+          <title>Next Games</title>
       </head>
       <body className="min-h-screen bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
       <PageWithScrollControl />

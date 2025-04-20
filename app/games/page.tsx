@@ -1,9 +1,7 @@
-import GameBox from "./component/game-box";
-import Side from "@/component/Side";
-import type {Game, GamePage} from "@/types/Game";
 import {GamePageProps} from "@/types/Game";
-import Pagination from "@/component/Pagination";
-import {apiFetch} from "@/lib/apiFetch";
+import GameList from "@/app/games/component/game-list";
+import {Suspense} from "react";
+import SimpleLoading from "@/component/SimpleLoading";
 
 export const dynamic = 'force-dynamic';
 
@@ -11,29 +9,31 @@ export const metadata = {
     title: 'Game'
 }
 
-async function getGames(page: number = 1): Promise<GamePage> {
-    return apiFetch(`${process.env.API_URL}/games?page=${page}`);
-}
-
 export default async function GamePage({ searchParams }: GamePageProps) {
     const { page } = await searchParams;
-    const data: GamePage = await getGames(Number(page) ?? 1);
     return (
         <div className="grid grid-cols-12 gap-6">
-            <Side />
-            <div className="md:col-span-9 grid-cols-none">
+            <div className="hidden md:block col-span-3">
                 <div className="bg-gray-800 rounded-lg p-4 mb-6">
-                    <div className="grid lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-1 gap-6 mb-6">
-                        {
-                            data.games.map((g: Game) => {
-                                return (
-                                    <GameBox key={g.app_id} game={g}/>
-                                )
-                            })
-                        }
+                    사이드 컨텐츠
+                </div>
+
+                <div className="bg-gray-800 rounded-lg p-4 mb-6">
+                    <h3 className="font-bold mb-4">최근에 등록된 게임</h3>
+                    <div className="space-y-4">
                     </div>
                 </div>
-                <Pagination data={data} />
+
+                <div className="bg-gray-800 rounded-lg p-4 mb-6">
+                    <h3 className="font-bold mb-4">오늘의 추천 게임</h3>
+                    <div className="space-y-4">
+                    </div>
+                </div>
+            </div>
+            <div className="md:col-span-9 grid-cols-none">
+                <Suspense fallback={<SimpleLoading />}>
+                    <GameList page={page} />
+                </Suspense>
             </div>
         </div>
     )

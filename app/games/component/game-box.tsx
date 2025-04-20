@@ -30,7 +30,7 @@ export default function GameBox({ game }: { game: Game }) {
                                 })
                             }
                             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-700 text-white hover:text-pink-400">
-                                <RiHeartLine />
+                                <RiHeartLine size={18} />
                             </button>
                         </div>
                     </div>
