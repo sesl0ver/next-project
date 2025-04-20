@@ -30,7 +30,7 @@ export default async function GamePage({ searchParams }: GamePageProps) {
                     </div>
                 </div>
             </div>
-            <div className="md:col-span-9 grid-cols-none">
+            <div className="md:col-span-9 grid-cols-12">
                 <Suspense fallback={<SimpleLoading />}>
                     <GameList page={page} />
                 </Suspense>

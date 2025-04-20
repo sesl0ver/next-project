@@ -1,5 +1,7 @@
 'use client'
 
+import {CategoryColor} from "@/constants/categories";
+
 export default function GamePostCategory(params: { category: string, postType: string }) {
     const {category, postType} = params;
     function categoryEvent(e: React.MouseEvent<HTMLSpanElement>) {
@@ -8,6 +10,6 @@ export default function GamePostCategory(params: { category: string, postType: s
         alert(postType);
     }
     return (
-        <span onClick={(e) => categoryEvent(e)} className="px-2 py-1 bg-blue-500 hover:bg-blue-700 text-xs rounded-full">{ category }</span>
+        <span onClick={(e) => categoryEvent(e)} className={`px-2 py-1 text-xs rounded-sm ${CategoryColor[postType]}`}>{ category }</span>
     )
 }

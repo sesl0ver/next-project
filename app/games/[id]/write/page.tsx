@@ -9,7 +9,7 @@ export default function GamePostWritePage({ params }: PostPageProps) {
     const { id, post_id } = use(params);
     return (
         <div className="grid grid-cols-12 gap-6">
-            <div className="hidden md:block col-span-3">
+            <div className="hidden lg:block lg:col-span-3 ">
                 <Suspense>
                     <GameInformation id={id} />
                 </Suspense>
@@ -27,7 +27,7 @@ export default function GamePostWritePage({ params }: PostPageProps) {
                     </div>
                 </div>
             </div>
-            <div className="md:col-span-9 grid-cols-none">
+            <div className="lg:col-span-9 col-span-12">
                 <div className="py-4 mb-6">
                     <GamePostWrite id={id} />
                 </div>

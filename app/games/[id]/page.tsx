@@ -12,7 +12,7 @@ export default function GameDetailPage({ params, searchParams }: PostPageProps) 
     const { page } = use(searchParams)
     return (
         <div className="grid grid-cols-12 gap-6">
-            <div className="hidden md:block col-span-3">
+            <div className="hidden lg:block lg:col-span-3">
                 <Suspense fallback={<Loading />}>
                     <GameInformation id={id} />
                 </Suspense>
@@ -30,13 +30,15 @@ export default function GameDetailPage({ params, searchParams }: PostPageProps) 
                     </div>
                 </div>
             </div>
-            <div className="col-span-9">
+            <div className="lg:col-span-9 col-span-12">
                 <div className="rounded-lg p-4 mb-6">
                     <Suspense fallback={<Loading />}>
                         <GameHeader id={id} />
                     </Suspense>
                     <div className="gap-6">
-                        <GamePostList gameId={id} page={page} />
+                        <Suspense fallback={<Loading />}>
+                            <GamePostList gameId={id} page={page} />
+                        </Suspense>
                     </div>
                 </div>
             </div>

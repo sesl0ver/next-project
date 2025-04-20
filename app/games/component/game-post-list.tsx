@@ -19,17 +19,18 @@ export default async function GamePostList(params: { gameId: string, page: strin
         <>
             <div className="rounded-lg p-1 mb-6">
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-bold">최신 게시글</h2>
+                    <div className="flex space-x-2"></div>
                     <div className="flex space-x-2">
                         <button className="px-3 py-1 text-sm bg-gray-800 rounded-full text-gray-300 hover:bg-gray-700">최신순</button>
                         <button className="px-3 py-1 text-sm bg-gray-800 rounded-full text-gray-300 hover:bg-gray-700">인기순</button>
+                        <button className="px-3 py-1 text-sm bg-gray-800 rounded-full text-gray-300 hover:bg-gray-700">업데이트순</button>
                     </div>
                 </div>
 
                 <div className="space-y-4">
                     {
                         data.posts.map((post: Post, index: number) => (
-                            <Link key={index} href={`/games/${post.app_id}/read/${post.post_id}`}
+                            <Link key={index} href={`/games/${post.app_id}/read/${post.post_id}` + ((page) ? `?page=${page}` : '')}
                                   className="block bg-gray-800 rounded-lg p-4 cursor-pointer duration-100
                                     hover:hover:bg-gray-700 hover:scale-105 active:animate-in active:hover:bg-gray-800">
                                 <div className="flex items-center justify-between mb-2">

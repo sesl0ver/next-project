@@ -1,11 +1,9 @@
 import {getGame} from "./game-header";
-import {apiFetch} from "@/lib/apiFetch";
-import {ApiResponse} from "@/types/ApiFetch";
 
 async function checkImageExists(url: string): Promise<boolean> {
     try {
-        const res: ApiResponse<null> = await apiFetch(url, { method: 'HEAD', cache: 'force-cache', next: { revalidate: 86400 } });
-        return res.success;
+        const res = await fetch(url, { method: 'HEAD', cache: 'force-cache', next: { revalidate: 86400 } });
+        return res.ok;
     } catch (err) {
         return false;
     }
@@ -16,7 +14,7 @@ export default async function GameInformation(params: { id: string }) {
     const imageUrl = `https://steamcdn-a.akamaihd.net/steam/apps/${app_id}/library_600x900_2x.jpg`;
     const exists = await checkImageExists(imageUrl);
     return (
-        <div className="hidden md:block col-span-3">
+        <div className="col-span-3">
             <div className="bg-gray-800 rounded-lg p-4 mb-6">
                 <div>
                     <img src={(exists) ? imageUrl : header_image} alt={title} />

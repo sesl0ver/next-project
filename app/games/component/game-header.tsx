@@ -17,7 +17,7 @@ export default async function GameHeader(params: { id: string }) {
                 <div className="flex items-center space-x-4">
                     <div className="w-44 h-16 rounded overflow-hidden" style={{ background: `url(${capsule_image}) no-repeat center center`, backgroundSize: "cover" }}></div>
                     <div>
-                        <h2 className="text-2xl font-bold">{title}</h2>
+                        <h2 className="md:text-2xl text-sm font-bold">{title}</h2>
                         <div className="flex items-center space-x-3 mt-1">
                             {
                                 genres.map((genre: string, idx: number) => {
