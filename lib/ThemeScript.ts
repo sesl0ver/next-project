@@ -2,9 +2,9 @@ export function getThemeScript() {
     return `
     (function () {
       try {
-        var theme = localStorage.getItem('theme');
+        let theme = localStorage.getItem('theme');
         if (!theme) {
-          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          let prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
           theme = prefersDark ? 'dark' : 'light';
         }
         if (theme === 'dark') {
