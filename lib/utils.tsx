@@ -1,11 +1,13 @@
 import React, { HTMLAttributes, ReactNode } from 'react';
+import {commands} from "@uiw/react-md-editor";
+import {RiYoutubeFill} from "@remixicon/react";
 
 // blockquote props 타입
 interface BlockquoteProps extends HTMLAttributes<HTMLElement> {
     children?: ReactNode;
 }
 
-export function isValidYouTubeUrl(url: string): boolean {
+function isValidYouTubeUrl(url: string): boolean {
     try {
         const parsed = new URL(url);
         const hostname = parsed.hostname.toLowerCase();
@@ -18,7 +20,7 @@ export function isValidYouTubeUrl(url: string): boolean {
     }
 }
 
-export function getYouTubeEmbedUrlWithTime(url: string): string | null {
+function getYouTubeEmbedUrlWithTime(url: string): string | null {
     try {
         const parsed = new URL(url);
 
@@ -76,4 +78,53 @@ function convertTimestampToSeconds(t: string): number | null {
     return minutes * 60 + seconds;
 }
 
+export const markdownYoutubeComponent = {
+    img: ({ src, alt }) => {
+        const isYoutubeAlt = alt === '@youtube';
+        if (isYoutubeAlt) {
+            if (src && isValidYouTubeUrl(src)) {
+                const embedUrl = getYouTubeEmbedUrlWithTime(src);
+                if (embedUrl) {
+                    return (
+                        <div style={{ margin: '1rem 0' }}>
+                            <iframe width="560" height="315" src={embedUrl} title="YouTube Video Preview" frameBorder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen loading="lazy" referrerPolicy="no-referrer" />
+                        </div>
+                    );
+                }
+            }
+            return null;
+        }
 
+        // 일반 이미지 처리
+        return <img src={src} alt={alt} />;
+    },
+}
+
+const commandsYoutube = {
+    name: 'Youtube',
+    keyCommand: 'youtube',
+    buttonProps: { 'aria-label': 'Insert Youtube Video.' },
+    icon: (
+        <RiYoutubeFill size={15} style={{ margin:'-7px -3px' }} />
+    ),
+    execute: (state, api) => {
+        let youtubeLink = `![@youtube](${state.selectedText}\n`;
+        if (!state.selectedText) {
+            youtubeLink = `![@youtube](URL)\n`;
+        }
+        api.replaceSelection(youtubeLink);
+    },
+};
+
+export const markdownToolbarCommands = [
+    commands.bold, commands.italic, commands.strikethrough, commands.hr, commands.title,
+    commands.divider,
+    commands.link, commands.quote, commands.code, commands.codeBlock, commands.comment,
+    commands.image, commandsYoutube, commands.table,
+    commands.divider,
+    commands.unorderedListCommand, commands.orderedListCommand, commands.checkedListCommand,
+    commands.divider,
+    commands.help,
+]

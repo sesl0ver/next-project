@@ -25,7 +25,7 @@ import {usePreventBackNavigation} from "@/hooks/usePreventBackNavigation";
 import {usePreventLinkNavigation} from "@/hooks/usePreventLinkNavigation";
 import {apiFetch} from "@/lib/apiFetch";
 import rehypeSanitize from "rehype-sanitize";
-import {isValidYouTubeUrl, getYouTubeEmbedUrlWithTime} from "@/lib/utils";
+import {markdownToolbarCommands, markdownYoutubeComponent} from "@/lib/utils";
 
 
 export default function GamePostWrite({ id }: {id: string}) {
@@ -122,22 +122,6 @@ export default function GamePostWrite({ id }: {id: string}) {
         setFiles(files.filter((_, i) => i !== x));
     }
 
-    const youtube = {
-        name: 'Youtube',
-        keyCommand: 'youtube',
-        buttonProps: { 'aria-label': 'Insert Youtube Video.' },
-        icon: (
-            <RiYoutubeFill size={15} style={{ margin:'-7px -3px' }} />
-        ),
-        execute: (state, api) => {
-            let youtubeLink = `![@youtube](${state.selectedText}\n`;
-            if (!state.selectedText) {
-                youtubeLink = `![@youtube](URL)\n`;
-            }
-            api.replaceSelection(youtubeLink);
-        },
-    };
-
     return (
         <div className="max-w-5xl mx-auto">
             <div className="flex items-center justify-between mb-6">
@@ -175,53 +159,11 @@ export default function GamePostWrite({ id }: {id: string}) {
                     <div className="mb-6">
                         <div className="container text-xl">
                             <MDEditor value={contents} onChange={setContents} height={400}
-                                      commands={[
-                                          commands.bold, commands.italic, commands.strikethrough, commands.hr, commands.title,
-                                          commands.divider,
-                                          commands.link, commands.quote, commands.code, commands.codeBlock, commands.comment,
-                                          commands.image, youtube, commands.table,
-                                          commands.divider,
-                                          commands.unorderedListCommand, commands.orderedListCommand, commands.checkedListCommand,
-                                          commands.divider,
-                                          commands.help,
-                                      ]}
+                                      commands={markdownToolbarCommands}
                                       preview='edit'
                                       previewOptions={{
                                           rehypePlugins: [[rehypeSanitize]],
-                                          components:{
-                                              img: ({ src, alt }) => {
-                                                  const isYoutubeAlt = alt === '@youtube';
-
-                                                  if (isYoutubeAlt) {
-                                                      if (src && isValidYouTubeUrl(src)) {
-                                                          const embedUrl = getYouTubeEmbedUrlWithTime(src);
-                                                          if (embedUrl) {
-                                                              return (
-                                                                  <div style={{ margin: '1rem 0' }}>
-                                                                      <iframe
-                                                                          width="560"
-                                                                          height="315"
-                                                                          src={embedUrl}
-                                                                          title="YouTube Video Preview"
-                                                                          frameBorder="0"
-                                                                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                                          allowFullScreen
-                                                                          loading="lazy"
-                                                                          referrerPolicy="no-referrer"
-                                                                      />
-                                                                  </div>
-                                                              );
-                                                          }
-                                                      }
-
-                                                      // 유튜브 alt지만 유효하지 않음 → 아무것도 안 보여줌
-                                                      return null;
-                                                  }
-
-                                                  // 일반 이미지 처리
-                                                  return <img src={src} alt={alt} />;
-                                              },
-                                          }
+                                          components: markdownYoutubeComponent
                                       }}
                             />
                         </div>
