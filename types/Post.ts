@@ -7,7 +7,7 @@ export interface PostPage {
 }
 
 export interface PostPageProps {
-    params: Promise<{ id: string, post_id: string }>
+    params: Promise<{ game_id: string, post_id: string }>
     searchParams: Promise<{ [key: string]: string | undefined }>
 }
 

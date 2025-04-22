@@ -6,12 +6,11 @@ import {
     RiDeleteBinLine,
     RiImageLine,
     RiInformationLine,
-    RiUpload2Line,
-    RiYoutubeFill
+    RiUpload2Line
 } from '@remixicon/react';
 import React, {useState,useEffect} from "react";
 import { useRouter } from "next/navigation";
-import MDEditor, { commands } from '@uiw/react-md-editor';
+import MDEditor from '@uiw/react-md-editor';
 import { Categories } from "@/constants/categories";
 import {filesize} from "filesize";
 import {UploadFile} from "@/types/UploadFile";
@@ -24,11 +23,11 @@ import { isDirtyAtom } from '@/atoms/isDirtyAtom';
 import {usePreventBackNavigation} from "@/hooks/usePreventBackNavigation";
 import {usePreventLinkNavigation} from "@/hooks/usePreventLinkNavigation";
 import {apiFetch} from "@/lib/apiFetch";
-import rehypeSanitize from "rehype-sanitize";
+import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import {markdownToolbarCommands, markdownYoutubeComponent} from "@/lib/utils";
+import {GameRead} from "@/types/Game";
 
-
-export default function GamePostWrite({ id }: {id: string}) {
+export default function GamePostWrite({ game_id, modify_data }: {game_id: string, modify_data: GameRead | null}) {
     const [, setLoading] = useAtom(loadingAtom);
     const router = useRouter();
     const [title, setTitle] = useState('');
@@ -45,7 +44,7 @@ export default function GamePostWrite({ id }: {id: string}) {
         if (isDirty) {
             if (!confirm('변경 사항이 저장되지 않았습니다. 이동하시겠습니까?')) return;
         }
-        router.push(`/games/${id}`);
+        router.push(`/games/${game_id}`);
     };
 
     usePreventNavigation() // 새로고침, 페이지 닫기 감지
@@ -79,18 +78,20 @@ export default function GamePostWrite({ id }: {id: string}) {
         formData.append('contents', contents);
         formData.append('post_type', category);
         formData.append('author_id', String(2)); // TODO 임시값.
-        formData.append('app_id', id);
+        formData.append('app_id', String(game_id)); // TODO 임시값.
         for (const file of files) {
-            formData.append('prevUrl', file.prevUrl);
-            formData.append('files', file.realFile);
+            if (file?.realFile) {
+                formData.append('prevUrl', file.prevUrl);
+                formData.append('files', file.realFile);
+            }
         }
         try {
             setLoading(true);
-            await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/games/post`, {
+            await apiFetch(`/api/games/posts`, {
                 method: 'POST',
                 body: formData,
             });
-            router.push(`/games/${id}`);
+            router.push(`/games/${game_id}`);
         } catch (e) {
             toast.error(e.message);
         } finally {
@@ -116,11 +117,54 @@ export default function GamePostWrite({ id }: {id: string}) {
         }]);
         handleImageInsert(objectUrl);
     };
-    const removeUpload = (x: number) => {
+    const removeUpload = async (x: number) => {
         const deleteFile = files.find((_, i) => i === x);
-        setContents(contents.replaceAll(`![첨부파일](${deleteFile.prevUrl})`, ''));
-        setFiles(files.filter((_, i) => i !== x));
+        if (deleteFile?.file_id) {
+            if (!confirm('첨부한 파일을 삭제하는 경우 되돌릴수 없습니다. 삭제하시겠습니까?')) {
+                return;
+            }
+        }
+        if (deleteFile) {
+            setContents(contents.replaceAll(`![첨부파일](${deleteFile.prevUrl})`, ''));
+            setFiles(files.filter((_, i) => i !== x));
+            if (deleteFile?.file_id && modify_data) {
+                // 실제 파일 삭제는 modify 모드에서만
+                await apiFetch(`/api/games/posts/removeFile?post_id=${String(modify_data.post_id)}&file_id=${String(deleteFile.file_id)}`, {
+                    method: 'DELETE'
+                });
+            }
+        }
     }
+
+    const customSchema = {
+        ...defaultSchema,
+        attributes: {
+            ...defaultSchema.attributes,
+            img: [
+                ...(defaultSchema.attributes?.img || []),
+                ['src', /^blob:/], // blob:을 src로 허용
+            ],
+        },
+        protocols: {
+            ...defaultSchema.protocols,
+            src: [...(defaultSchema.protocols?.src || []), 'blob'],
+        },
+    };
+
+    useEffect(() => {
+        if (modify_data?.title) {
+            setTitle(modify_data.title);
+            setContents(modify_data.contents);
+            setCategory(modify_data.post_type);
+            setFiles([]);
+            for (const file of modify_data.files) {
+                setFiles(f => [...f, {
+                    ...file,
+                    prevUrl: `${process.env.NEXT_PUBLIC_IMAGE_URL}/${file.filename}`
+                }]);
+            }
+        }
+    }, []);
 
     return (
         <div className="max-w-5xl mx-auto">
@@ -129,7 +173,7 @@ export default function GamePostWrite({ id }: {id: string}) {
                     <button onClick={goBack} className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center mr-3 hover:bg-gray-700">
                         <RiArrowLeftLine />
                     </button>
-                    <h1 className="text-2xl font-bold text-white">글 작성</h1>
+                    <h1 className="text-2xl font-bold text-white">글 { (modify_data !== null) ? '수정' : '작성' }</h1>
                 </div>
                 <div className="text-sm text-gray-400">
                     자유게시판
@@ -158,11 +202,14 @@ export default function GamePostWrite({ id }: {id: string}) {
 
                     <div className="mb-6">
                         <div className="container text-xl">
-                            <MDEditor value={contents} onChange={setContents} height={400}
+                            <MDEditor value={contents}
+                                      // @ts-ignore
+                                      onChange={setContents}
+                                      height={400}
                                       commands={markdownToolbarCommands}
                                       preview='edit'
                                       previewOptions={{
-                                          rehypePlugins: [[rehypeSanitize]],
+                                          rehypePlugins: [[rehypeSanitize, customSchema]],
                                           components: markdownYoutubeComponent
                                       }}
                             />

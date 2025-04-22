@@ -8,16 +8,16 @@ import GameInformation from "../component/game-information";
 import {PostPageProps} from "@/types/Post";
 
 export default function GameDetailPage({ params, searchParams }: PostPageProps) {
-    const { id } = use(params)
+    const { game_id } = use(params)
     const { page } = use(searchParams)
     return (
         <div className="grid grid-cols-12 gap-6">
             <div className="hidden lg:block lg:col-span-3">
                 <Suspense fallback={<Loading />}>
-                    <GameInformation id={id} />
+                    <GameInformation id={game_id} />
                 </Suspense>
                 <Suspense fallback={<Loading />}>
-                    <GamePrice id={String(id)} />
+                    <GamePrice id={String(game_id)} />
                 </Suspense>
                 <div className="bg-gray-800 rounded-lg p-4 mb-6">
                     <h3 className="font-bold mb-4">비슷한 게임 추천</h3>
@@ -33,16 +33,16 @@ export default function GameDetailPage({ params, searchParams }: PostPageProps) 
             <div className="lg:col-span-9 col-span-12">
                 <div className="rounded-lg p-4 mb-6">
                     <Suspense fallback={<Loading />}>
-                        <GameHeader id={id} />
+                        <GameHeader id={game_id} />
                     </Suspense>
                     <div className="gap-6">
                         <Suspense fallback={<Loading />}>
-                            <GamePostList gameId={id} page={page} />
+                            <GamePostList game_id={game_id} page={page} />
                         </Suspense>
                     </div>
                 </div>
             </div>
-            <GamePostButton id={id} />
+            <GamePostButton id={game_id} />
         </div>
     )
 }

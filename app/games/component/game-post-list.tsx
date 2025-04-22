@@ -8,13 +8,13 @@ import {apiFetch} from "@/lib/apiFetch";
 import GamePostCategory from "@/app/games/component/game-post-category";
 import GamePostUsername from "@/app/games/component/game-post-username";
 
-async function getGamePosts(gameId: string, page: string): Promise<PostPage> {
-    return apiFetch(`${process.env.API_URL}/games/posts/${gameId}?page=${page ?? 1}`)
+async function getGamePosts(game_id: string, page: string): Promise<PostPage> {
+    return apiFetch(`${process.env.API_URL}/games/${game_id}/posts?page=${page ?? '1'}`)
 }
 
-export default async function GamePostList(params: { gameId: string, page: string }) {
-    const { gameId, page } = await params;
-    const data: PostPage = await getGamePosts(gameId, page);
+export default async function GamePostList(params: { game_id: string, page: string }) {
+    const { game_id, page } = await params;
+    const data: PostPage = await getGamePosts(game_id, page);
     return (
         <>
             <div className="rounded-lg p-1 mb-6">

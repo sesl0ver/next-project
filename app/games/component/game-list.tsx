@@ -4,12 +4,12 @@ import GameBox from "@/app/games/component/game-box";
 import {Suspense} from "react";
 import Pagination from "@/component/Pagination";
 
-export async function getGames(page: number = 1): Promise<GamePage> {
-    return apiFetch(`${process.env.API_URL}/games?page=${page}`);
+export async function getGames(page: string): Promise<GamePage> {
+    return apiFetch(`${process.env.API_URL}/games?page=${page ?? 1}`);
 }
 
 export default async function GameList({ page }: { page: string }) {
-    const data: GamePage = await getGames(Number(page) ?? 1);
+    const data: GamePage = await getGames(page);
     return (
         <>
             <div className="bg-gray-800 rounded-lg p-4 mb-6">

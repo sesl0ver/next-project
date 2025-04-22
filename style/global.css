@@ -8,3 +8,9 @@ a:focus {
 button:hover {
     cursor: pointer;
 }
+
+i[class^="ri-"],
+i[class*=" ri-"] {
+    font-size: 12px;
+    vertical-align: middle; /* 텍스트와 정렬 맞추기 */
+}

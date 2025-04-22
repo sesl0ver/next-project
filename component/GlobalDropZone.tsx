@@ -29,7 +29,9 @@ export default function DropHandler({ handleUpload }: Props) {
     const validateImage = (file: File) => {
         return new Promise((resolve, reject) => {
             const img = new Image();
-            img.onload = () => resolve(true);
+            img.onload = (event) => {
+                resolve(true);
+            }
             img.onerror = () => reject(false);
             img.src = URL.createObjectURL(file);
         });

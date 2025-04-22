@@ -41,6 +41,11 @@ export interface GameRead {
         app_id: number;
         title: string;
     }
+    files: {
+        file_id: number;
+        filename: string;
+        size: number;
+    }[]
     post_id: number;
     post_type: 'TALK' | 'QUESTION' | 'TIP' | 'GUIDE' | 'REVIEW' | 'NOTICE';
     title: string;
