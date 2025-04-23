@@ -32,3 +32,28 @@ export interface Post {
         comments: number
     }
 }
+
+export interface CategorySelectProps {
+    setCategoryAction: (value: string) => void;
+    exclude?: string[];
+}
+
+export interface UploadFile {
+    file_id?: number;
+    prevUrl: string,
+    filename: string,
+    size: number,
+    realFile?: File
+}
+
+export interface FileUploadProps {
+    files: UploadFile[];
+    setFiles: React.Dispatch<React.SetStateAction<UploadFile[]>>;
+    handleImageInsert: (imageUrl: string) => void;
+}
+
+export interface FileListProps {
+    files: UploadFile[];
+    removeUpload: (index: number) => void;
+}
+

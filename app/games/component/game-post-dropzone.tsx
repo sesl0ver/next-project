@@ -5,26 +5,23 @@ import { useDropzone } from 'react-dropzone'
 import {RiUpload2Line} from "@remixicon/react";
 
 type Props = {
-    handleUpload: (file: File) => void;
+    handleUploadAction: (file: File) => void;
 }
 
-export default function DropHandler({ handleUpload }: Props) {
+export default function DropHandler({ handleUploadAction }: Props) {
     const [isDragging, setIsDragging] = useState(false)
     const dragCounter = useRef(0)
 
     const onDrop = useCallback((acceptedFiles: File[]) => {
-        console.log('📦 dropped files:', acceptedFiles)
-        // TODO 여러 파일이 한번에 업로드 되었을때 처리 필요.
-        // TODO 동일한 파일 걸러줄 필요 있음.
         for (const file of acceptedFiles) {
             validateImage(file).then((res) => {
                 if (res) {
-                    handleUpload(file);
+                    handleUploadAction(file);
                 }
             });
         }
         setIsDragging(false)
-    }, [handleUpload])
+    }, [handleUploadAction])
 
     const validateImage = (file: File) => {
         return new Promise((resolve, reject) => {

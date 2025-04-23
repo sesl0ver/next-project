@@ -13,93 +13,82 @@ export const config = {
 };
 
 // 게시글 작성 및 파일 업로드 처리
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method === 'POST') {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+    if (req.method === 'POST' || req.method === 'PUT') {
+        const uploadPath = path.join(process.cwd(), 'uploads');
         const form = new IncomingForm({
             // 업로드 디렉토리 설정
-            uploadDir: path.join(process.cwd(), 'uploads'), // 업로드 경로 설정
+            uploadDir: uploadPath, // 업로드 경로 설정
             keepExtensions: true, // 파일 확장자 유지
             maxFiles: 10, // 최대 10개 파일 첨부 가능
         });
 
         // 업로드 디렉토리가 존재하지 않으면 생성
-        const uploadDir = path.join(process.cwd(), 'uploads');
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir);
+        if (!fs.existsSync(uploadPath)) {
+            fs.mkdirSync(uploadPath);
         }
 
-        form.parse(req, async (err, fields, files) => {
-            if (err) {
-                console.error('파일 처리 중 오류:', err);
-                return res.status(500).json({ success: false, message: '파일 처리 중 오류가 발생했습니다.' });
-            }
+        const parseForm = (): Promise<{ fields: formidable.Fields; files: formidable.Files }> => {
+            return new Promise((resolve, reject) => {
+                form.parse(req, (err, fields, files) => {
+                    if (err) reject(err);
+                    else resolve({ fields, files });
+                });
+            });
+        };
 
-            // form-data 생성
+        try {
+            const { fields, files } = await parseForm();
+
             const formData = new FormData();
 
-            // 텍스트 필드 추가
             Object.entries(fields).forEach(([key, value]) => {
                 if (Array.isArray(value)) {
-                    for (const v of value) {
-                        formData.append(key, v);
-                    }
+                    value.forEach(v => formData.append(key, v));
                 } else {
                     formData.append(key, value);
                 }
             });
 
-            // 파일 추가
             const { fileTypeFromBuffer } = await import('file-type');
             const fileList = Array.isArray(files.files) ? files.files : [files.files];
             for (const file of fileList) {
                 if (!file) continue;
-
                 const buffer = await readFile(file.filepath);
                 const fileType = await fileTypeFromBuffer(buffer);
-
+                if (!fileType?.mime?.startsWith('image/')) {
+                    return res.status(400).json({ success: false, message: '허용되지 않은 파일 형식입니다.' });
+                }
                 const filename = file.originalFilename ?? file.newFilename ?? 'untitled';
-                const blob = new Blob([buffer], { type: fileType?.mime });
-
+                const blob = new Blob([buffer], { type: fileType.mime });
                 formData.append('files', blob, filename);
             }
 
-            try {
-                const response = await fetch(`${process.env.API_URL}/games/${formData.get('app_id')}/posts`, {
-                    method: 'POST',
-                    // headers: {
-                    //     Authorization: `Bearer ${yourAccessToken}`,
-                    //     'x-custom-header': 'example-value',
-                    //     // ⚠️ Content-Type은 생략
-                    // },
-                    body: formData,
-                });
+            const response = await fetch(`${process.env.API_URL}/games/${formData.get('app_id')}/posts`, {
+                method: req.method,
+                body: formData,
+            });
 
-                const result = await response.json();
+            const result = await response.json();
 
-                // ✅ 성공 시 파일 삭제
-                if (response.ok) {
-                    await Promise.all(
-                        fileList.map(async (file) => {
-                            try {
-                                await fsp.unlink(file.filepath);
-                                console.log('파일 삭제 성공');
-                            } catch (err) {
-                                console.error('파일 삭제 실패:', err);
-                            }
-                        })
-                    );
-                }
-
-                res.status(200).json({success: true});
-            } catch (err) {
-                console.error(err);
-                res.status(500).json({ message: 'Upload failed', error: String(err) });
+            if (response.ok) {
+                await Promise.all(
+                    fileList.map(async (file) => {
+                        if (file) {
+                            await fsp.unlink(file.filepath).catch(console.error);
+                        }
+                    })
+                );
             }
-        });
-    } else if (req.method === 'PUT') {
 
+            return res.status(200).json({ success: true, data: result });
+
+        } catch (err) {
+            console.error('업로드 실패:', err);
+            return res.status(500).json({ success: false, message: 'Upload failed', error: String(err) });
+        }
     } else if (req.method === 'DELETE') {
-
+        res.status(200).json({success: true});
     } else {
         return res.status(405).json({ success: false, message: 'Method Not Allowed' });
     }

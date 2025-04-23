@@ -1,40 +1,36 @@
 "use client";
 
-import {
-    RiArrowLeftLine,
-    RiCheckboxCircleLine,
-    RiDeleteBinLine,
-    RiImageLine,
-    RiInformationLine,
-    RiUpload2Line
-} from '@remixicon/react';
+import {RiArrowLeftLine} from '@remixicon/react';
 import React, {useState,useEffect} from "react";
 import { useRouter } from "next/navigation";
 import MDEditor from '@uiw/react-md-editor';
-import { Categories } from "@/constants/categories";
-import {filesize} from "filesize";
-import {UploadFile} from "@/types/UploadFile";
 import { toast } from "sonner";
-import { useAtom } from "jotai";
+import {useAtom} from "jotai";
+import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import { loadingAtom } from "@/atoms/loadingAtom";
-import GlobalDropZone from "@/component/GlobalDropZone";
-import { usePreventNavigation } from '@/hooks/usePreventNavigation';
 import { isDirtyAtom } from '@/atoms/isDirtyAtom';
+import {apiFetch} from "@/lib/apiFetch";
+import {markdownToolbarCommands, markdownYoutubeComponent} from "@/lib/utils";
+import { usePreventNavigation } from '@/hooks/usePreventNavigation';
 import {usePreventBackNavigation} from "@/hooks/usePreventBackNavigation";
 import {usePreventLinkNavigation} from "@/hooks/usePreventLinkNavigation";
-import {apiFetch} from "@/lib/apiFetch";
-import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
-import {markdownToolbarCommands, markdownYoutubeComponent} from "@/lib/utils";
+import GamePostCategorySelector from "@/app/games/component/game-post-category-selector";
+import GamePostFileUpload from "@/app/games/component/game-post-file-upload";
+import GamePostFileList from "@/app/games/component/game-post-file-list";
+import GamePostGuide from "@/app/games/component/game-post-guide";
 import {GameRead} from "@/types/Game";
+import {UploadFile} from "@/types/Post";
+import RedirectInterval from "@/component/RedirectInterval";
 
 export default function GamePostWrite({ game_id, modify_data }: {game_id: string, modify_data: GameRead | null}) {
     const [, setLoading] = useAtom(loadingAtom);
-    const router = useRouter();
     const [title, setTitle] = useState('');
     const [files, setFiles] = useState<UploadFile[]>([]);
     const [contents, setContents] = useState('');
-    const [category, setCategory] = useState('TALK');
+    const [category, setCategoryAction] = useState('TALK');
     const [isDirty, setIsDirty] = useAtom(isDirtyAtom);
+    const router = useRouter();
+    const [url, setUrl] = useState("");
 
     const handleImageInsert = (imageUrl: string) => {
         setContents(prev => `${prev}\n![첨부파일](${imageUrl})`);
@@ -47,76 +43,11 @@ export default function GamePostWrite({ game_id, modify_data }: {game_id: string
         router.push(`/games/${game_id}`);
     };
 
-    usePreventNavigation() // 새로고침, 페이지 닫기 감지
-    usePreventBackNavigation() // 뒤로가기 감지
-    usePreventLinkNavigation(); // 링크 클릭 막기
-
-    useEffect(() => {
-        if (title.length < 1 && contents.length < 1 && files.length < 1) {
-            setIsDirty(false);
-        } else {
-            setIsDirty(true);
-        }
-    }, [title, contents, files]);
-
     function isValidInput(input: string): boolean {
         const cleaned = input.replace(/[\u200B-\u200D\uFEFF\s]/g, '');
         return cleaned.length > 0;
     }
 
-    const postProcess = async () => {
-        if (!isValidInput(title)) {
-            toast.error("제목을 입력하세요.");
-            return;
-        }
-        if (!isValidInput(contents)) {
-            toast.error("내용을 입력하세요.");
-            return;
-        }
-        const formData = new FormData();
-        formData.append('title', title);
-        formData.append('contents', contents);
-        formData.append('post_type', category);
-        formData.append('author_id', String(2)); // TODO 임시값.
-        formData.append('app_id', String(game_id)); // TODO 임시값.
-        for (const file of files) {
-            if (file?.realFile) {
-                formData.append('prevUrl', file.prevUrl);
-                formData.append('files', file.realFile);
-            }
-        }
-        try {
-            setLoading(true);
-            await apiFetch(`/api/games/posts`, {
-                method: 'POST',
-                body: formData,
-            });
-            router.push(`/games/${game_id}`);
-        } catch (e) {
-            toast.error(e.message);
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    const handleUpload = async (file: File) => {
-        if (! file) {
-            return;
-        }
-        if (files.find(f => f.size === file.size && f.filename === file.name)) {
-            toast.error(`동일한 파일이 제외되었습니다.\n(${file.name}`);
-            return;
-        }
-
-        const objectUrl = URL.createObjectURL(file); // 임시 미리보기 URL 생성
-        setFiles(current => [...current, {
-            prevUrl: objectUrl,
-            filename: file.name,
-            size: file.size,
-            realFile: file
-        }]);
-        handleImageInsert(objectUrl);
-    };
     const removeUpload = async (x: number) => {
         const deleteFile = files.find((_, i) => i === x);
         if (deleteFile?.file_id) {
@@ -151,23 +82,89 @@ export default function GamePostWrite({ game_id, modify_data }: {game_id: string
         },
     };
 
+
+    const postProcess = async () => {
+        if (!isValidInput(title)) {
+            toast.error("제목을 입력하세요.");
+            return;
+        }
+        if (!isValidInput(contents)) {
+            toast.error("내용을 입력하세요.");
+            return;
+        }
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('contents', contents);
+        formData.append('post_type', category);
+        formData.append('author_id', String(2)); // TODO 임시값.
+        formData.append('app_id', String(game_id));
+        if (modify_data) {
+            formData.append('post_id', String(modify_data.post_id));
+        }
+        for (const file of files) {
+            if (file?.realFile) {
+                formData.append('files', file.realFile);
+                formData.append('prevUrl', file.prevUrl);
+            }
+        }
+
+        setLoading(true);
+        try {
+            const result: { success: boolean, data: any } = await apiFetch(`/api/games/posts`, {
+                method: (modify_data) ? 'PUT' : 'POST',
+                body: formData,
+            });
+            if (! result.success) {
+                toast.error((`${(modify_data) ? '글수정' : '글작성'}에 실패했습니다.`));
+                return;
+            }
+            toast.success((`${(modify_data) ? '글수정' : '글작성'}을 완료했습니다.`));
+            // 이미지 업로드 완료 후, blob 리소스 수동 해제
+            for (const file of files) {
+                if (file?.realFile) {
+                    URL.revokeObjectURL(file.prevUrl); // 메모리 해제
+                }
+            }
+            setIsDirty(false);
+            setUrl(`/games/${game_id}`);
+        } catch (e) {
+            toast.error(e.message);
+        }
+    }
+
+    useEffect(() => {
+        if (modify_data && title === modify_data.title && contents === modify_data.contents) {
+            setIsDirty(false);
+        } else if (title.length < 1 && contents.length < 1) {
+            setIsDirty(false);
+        } else {
+            setIsDirty(true);
+        }
+    }, [title, contents]);
+
     useEffect(() => {
         if (modify_data?.title) {
             setTitle(modify_data.title);
             setContents(modify_data.contents);
-            setCategory(modify_data.post_type);
-            setFiles([]);
-            for (const file of modify_data.files) {
-                setFiles(f => [...f, {
-                    ...file,
-                    prevUrl: `${process.env.NEXT_PUBLIC_IMAGE_URL}/${file.filename}`
-                }]);
-            }
+            setCategoryAction(modify_data.post_type);
+            // 한 번에 모든 파일을 설정하도록 최적화
+            const updatedFiles = modify_data.files.map(file => ({
+                ...file,
+                prevUrl: `${process.env.NEXT_PUBLIC_IMAGE_URL}/${file.filename}`
+            }));
+            setFiles(updatedFiles);
         }
-    }, []);
+    }, [modify_data]);
+
+    usePreventNavigation() // 새로고침, 페이지 닫기 감지
+    usePreventBackNavigation() // 뒤로가기 감지
+    usePreventLinkNavigation(); // 링크 클릭 막기
 
     return (
         <div className="max-w-5xl mx-auto">
+            <RedirectInterval url={url} onRedirectAction={() => {
+                setLoading(false);
+            }} />
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center">
                     <button onClick={goBack} className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center mr-3 hover:bg-gray-700">
@@ -182,17 +179,7 @@ export default function GamePostWrite({ game_id, modify_data }: {game_id: string
 
             <div className="bg-gray-800 rounded-lg overflow-hidden mb-6">
                 <div className="p-6">
-                    <div className="mb-6">
-                        <label htmlFor="category" className="block text-sm font-medium text-gray-300 mb-2">카테고리</label>
-                        <div className="relative">
-                            <select id="category" onChange={(e) => setCategory(e.target.value)}
-                                    className="custom-select bg-gray-700 text-gray-200 w-full px-4 py-3 rounded border-none focus:outline-none focus:ring-2 focus:ring-primary pr-10">
-                                {Object.entries(Categories).map(([key, label]) => (
-                                    (key !== 'NOTICE') ? <option key={key} value={key}>{label}</option> : null
-                                ))}
-                            </select>
-                        </div>
-                    </div>
+                    <GamePostCategorySelector setCategoryAction={setCategoryAction} />
 
                     <div className="mb-6">
                         <label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-2">제목</label>
@@ -219,55 +206,12 @@ export default function GamePostWrite({ game_id, modify_data }: {game_id: string
                     <div className="mb-6">
                         <label className="block text-sm font-medium text-gray-300 mb-2">파일 첨부</label>
 
-                        <div className="file-drop-area bg-gray-700 rounded p-6 text-center">
-                            <div className="mb-3">
-                                <div className="w-12 h-12 mx-auto bg-gray-600 rounded-full flex items-center justify-center text-gray-400">
-                                    <RiUpload2Line className="ri-2x" />
-                                </div>
-                            </div>
-                            <GlobalDropZone handleUpload={handleUpload} />
-                            <p className="text-gray-300 mb-2">파일을 페이지에 끌어다 놓아 파일 첨부</p>
-                            <p className="text-xs text-gray-400 mt-2">10MB 이하. Webp, Png, Gif, Jpg 파일만 업로드 가능합니다.</p>
-                        </div>
+                        <GamePostFileUpload files={files} setFiles={setFiles} handleImageInsert={handleImageInsert} />
 
-                        <div className="mt-4 space-y-2">
-                            {
-                                files.map((file, idx) => (
-                                    <div key={idx} className="file-item flex items-center justify-between p-3 rounded">
-                                        <div className="flex items-center">
-                                            <div
-                                                className="w-8 h-8 flex items-center justify-center bg-blue-500/10 text-blue-500 rounded mr-3">
-                                                <i className="ri-file-text-line"></i>
-                                                <RiImageLine />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm text-white">{file.filename}</p>
-                                                <p className="text-xs text-gray-400">{filesize(file.size, {standard: 'jedec'})}</p>
-                                            </div>
-                                        </div>
-                                        <button type="button" className="text-gray-400 hover:text-red-400">
-                                            <div className="w-6 h-6 flex items-center justify-center">
-                                                <RiDeleteBinLine onClick={() => removeUpload(idx)} />
-                                            </div>
-                                        </button>
-                                    </div>
-                                ))
-                            }
-                        </div>
+                        <GamePostFileList files={files} removeUpload={removeUpload} />
                     </div>
 
-                    <div className="border-t border-gray-700 pt-6 mb-6">
-                        <div className="flex flex-wrap gap-6">
-                            <label className="flex items-center">
-                                <input type="checkbox" className="custom-checkbox mr-2"/>
-                                <span className="text-sm text-gray-300">댓글 허용</span>
-                            </label>
-                            <label className="flex items-center">
-                                <input type="checkbox" className="custom-checkbox mr-2"/>
-                                <span className="text-sm text-gray-300">비밀글</span>
-                            </label>
-                        </div>
-                    </div>
+                    <div className="border-t border-gray-700 mb-6"></div>
 
                     <div className="flex justify-end space-x-3">
                         <button onClick={goBack} className="bg-gray-700 hover:bg-gray-600 text-white px-6 py-3 !rounded-button whitespace-nowrap">취소</button>
@@ -276,40 +220,7 @@ export default function GamePostWrite({ game_id, modify_data }: {game_id: string
                 </div>
             </div>
 
-            <div className="bg-gray-800 rounded-lg p-6 mb-6">
-                <h3 className="text-white font-medium mb-4 flex items-center">
-                    <div className="w-5 h-5 flex items-center justify-center mr-2 text-yellow-500">
-                        <RiInformationLine />
-                    </div>
-                    게시글 작성 가이드
-                </h3>
-                <ul className="space-y-2 text-sm text-gray-300">
-                    <li className="flex items-start">
-                        <div className="w-5 h-5 flex items-center justify-center mr-2 text-gray-400 flex-shrink-0 mt-0.5">
-                            <RiCheckboxCircleLine />
-                        </div>
-                        <p>타인에게 불쾌감을 주는 내용이나 욕설, 비방 등은 삼가해 주세요.</p>
-                    </li>
-                    <li className="flex items-start">
-                        <div className="w-5 h-5 flex items-center justify-center mr-2 text-gray-400 flex-shrink-0 mt-0.5">
-                            <RiCheckboxCircleLine />
-                        </div>
-                        <p>개인정보 보호를 위해 실명, 전화번호, 주소 등의 개인정보 공유는 자제해 주세요.</p>
-                    </li>
-                    <li className="flex items-start">
-                        <div className="w-5 h-5 flex items-center justify-center mr-2 text-gray-400 flex-shrink-0 mt-0.5">
-                            <RiCheckboxCircleLine />
-                        </div>
-                        <p>저작권에 문제가 될 수 있는 자료의 무단 공유는 금지됩니다.</p>
-                    </li>
-                    <li className="flex items-start">
-                        <div className="w-5 h-5 flex items-center justify-center mr-2 text-gray-400 flex-shrink-0 mt-0.5">
-                            <RiCheckboxCircleLine />
-                        </div>
-                        <p>게시글 작성 후에도 수정 및 삭제가 가능합니다.</p>
-                    </li>
-                </ul>
-            </div>
+            <GamePostGuide />
         </div>
     )
 }
