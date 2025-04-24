@@ -9,7 +9,7 @@ import rehypeSanitize from "rehype-sanitize";
 export default function MarkdownReader({ value }: { value: string }) {
     value = sanitize(value, {ALLOWED_TAGS: []});
     return (
-        <div className="container">
+        <div className="container min-h-[200px]">
             <MDEditor.Markdown source={value}
                                style={{ whiteSpace: 'pre-wrap', backgroundColor: 'transparent' }}
                                rehypePlugins={[rehypeSanitize]}

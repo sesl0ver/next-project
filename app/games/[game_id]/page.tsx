@@ -37,7 +37,7 @@ export default function GameDetailPage({ params, searchParams }: PostPageProps) 
                     </Suspense>
                     <div className="gap-6">
                         <Suspense fallback={<Loading />}>
-                            <GamePostList game_id={game_id} page={page} />
+                            <GamePostList game_id={game_id} page={page ?? '1'} />
                         </Suspense>
                     </div>
                 </div>

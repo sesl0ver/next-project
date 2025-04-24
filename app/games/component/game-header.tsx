@@ -2,6 +2,7 @@ import Link from "next/link";
 import {RiHeartLine, RiShareLine, RiSteamFill} from "@remixicon/react";
 import { Game } from "@/types/Game";
 import {apiFetch} from "@/lib/apiFetch";
+import PostShareButton from "@/component/PostShareButton";
 
 
 export async function getGame (id: string): Promise<Game> {
@@ -34,9 +35,9 @@ export default async function GameHeader(params: { id: string }) {
                     <Link href="#" title="관심등록" className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-700 text-white hover:text-pink-400">
                         <RiHeartLine size={18} />
                     </Link>
-                    <Link href="#" title="공유하기" className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-700 text-white hover:text-yellow-400">
+                    <PostShareButton title="공유하기" className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-700 text-white hover:text-yellow-400">
                         <RiShareLine size={18} />
-                    </Link>
+                    </PostShareButton>
                     <Link href={`https://store.steampowered.com/app/${app_id}`} target="_blank" title="스팀상점 바로가기" className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-700 text-white hover:text-gray-800">
                         <i className="ri-steam-fill"></i>
                         <RiSteamFill size={18} />

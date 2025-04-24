@@ -46,5 +46,5 @@ export const usePreventLinkNavigation = () => {
         return () => {
             document.removeEventListener('click', handleClick, true);
         };
-    }, [isDirty, setIsDirty, setIsNavigating]);
+    }, [isDirty]);
 };

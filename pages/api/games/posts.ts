@@ -85,10 +85,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         } catch (err) {
             console.error('업로드 실패:', err);
-            return res.status(500).json({ success: false, message: 'Upload failed', error: String(err) });
+            return res.status(500).json({ success: false, message: err.message, error: String(err) });
         }
     } else if (req.method === 'DELETE') {
-        res.status(200).json({success: true});
+        try {
+            const { game_id, post_id } = req.query;
+            const response = await fetch(`${process.env.API_URL}/games/${game_id}/posts?post_id=${post_id}`, {
+                method: 'DELETE'
+            });
+            if (! response.ok) {
+                throw new Error('글 삭제 중 오류가 발생했습니다.');
+            }
+            const result = await response.json();
+
+            return res.status(200).json({success: true, data: result });
+        } catch (err) {
+            return res.status(500).json({ success: false, message: err.message, error: String(err) });
+        }
     } else {
         return res.status(405).json({ success: false, message: 'Method Not Allowed' });
     }

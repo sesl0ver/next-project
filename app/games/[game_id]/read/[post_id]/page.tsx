@@ -1,23 +1,27 @@
 import {
-    RiEyeLine, RiFlagLine, RiMessageLine, RiShareLine, RiThumbUpLine, RiUserLine, RiDeleteBinLine, RiEdit2Line,
-    RiListView, RiDownloadLine, RiEmotionLine, RiImageLine, RiAttachment2, RiMore2Fill
+    RiEyeLine, RiMessageLine, RiUserLine, RiDownloadLine,
+    RiEmotionLine, RiImageLine, RiAttachment2, RiStarSmileFill
 } from "@remixicon/react";
-import {getRelativeTime} from "@/lib/RelativeTime";
-import {Categories} from "@/constants/categories";
-import MarkdownReader from "@/component/MarkdownReader";
-import {apiFetch} from "@/lib/apiFetch";
 import React, {Suspense} from "react";
+import Link from "next/link";
+import {filesize} from "filesize";
+import {GameRead} from "@/types/Game";
+import {PostPageProps} from "@/types/Post";
+import {Categories} from "@/constants/categories";
+import {apiFetch} from "@/lib/apiFetch";
+import {getRelativeTime} from "@/lib/RelativeTime";
 import Loading from "@/component/SimpleLoading";
+import MarkdownReader from "@/component/MarkdownReader";
 import GamePrice from "@/app/games/component/game-price";
 import GameInformation from "@/app/games/component/game-information";
 import GameHeader from "@/app/games/component/game-header";
 import GamePostButton from "@/app/games/component/game-post-button";
-import Link from "next/link";
 import GamePostCategory from "@/app/games/component/game-post-category";
-import {GameRead} from "@/types/Game";
 import GamePostList from "@/app/games/component/game-post-list";
-import {PostPageProps} from "@/types/Post";
-import {filesize} from "filesize";
+import GamePostReadButton from "@/app/games/component/game-post-read-button";
+import GamePostReadManageButton from "@/app/games/component/game-post-read-manage-button";
+import GamePostReadTopButton from "@/app/games/component/game-post-read-top-button";
+import GamePostLikeButton from "@/app/games/component/game-post-like-button";
 
 export async function getGamePostRead (game_id: string, post_id: string): Promise<GameRead> {
     return apiFetch(`${process.env.API_URL}/games/${game_id}/posts/${post_id}`);
@@ -67,15 +71,7 @@ export default async function GameReadPage({ params, searchParams }: PostPagePro
                                             <span className="text-sm text-gray-400" title={read.created_date}>{getRelativeTime(read.created_date)}</span><span className="text-sm text-gray-400" title={read.updated_date}>{(read.created_date === read.updated_date) ? null : ` · 수정됨 ${getRelativeTime(read.updated_date)}`}</span>
                                         </div>
                                     </div>
-                                    <div className="relative">
-                                        <button className="text-gray-400 hover:text-primary post-menu-btn">
-                                            <RiMore2Fill size={18} />
-                                        </button>
-                                        <div className="hidden absolute right-0 top-full mt-2 w-32 bg-gray-700 rounded-lg shadow-lg overflow-hidden z-10 post-menu">
-                                            <button className="w-full px-4 py-2 text-left text-sm hover:bg-gray-600">수정하기</button>
-                                            <button className="w-full px-4 py-2 text-left text-sm hover:bg-gray-600">삭제하기</button>
-                                        </div>
-                                    </div>
+                                    <GamePostReadTopButton game_id={game_id} post_id={post_id} page={page ?? '1'} />
                                 </div>
                                 <div className="space-y-4">
                                     <div className="flex items-center space-x-2">
@@ -85,12 +81,13 @@ export default async function GameReadPage({ params, searchParams }: PostPagePro
                                     </div>
                                     <div className="flex items-center space-x-4 text-sm text-gray-400">
                                         <span className="flex items-center space-x-1"><RiEyeLine size={18}/><span>1,245</span></span>
-                                        <span className="flex items-center space-x-1"><RiThumbUpLine size={18}/><span>1,245</span></span>
+                                        <span className="flex items-center space-x-1"><RiStarSmileFill size={18}/><span>1,245</span></span>
                                         <span className="flex items-center space-x-1"><RiMessageLine size={18}/><span>1,245</span></span>
                                     </div>
                                     <div className="prose prose-invert max-w-none">
                                         <MarkdownReader value={read.contents}/>
                                     </div>
+                                    <GamePostLikeButton />
                                 </div>
                                 {
                                     (read.files.length > 0) ? (
@@ -116,49 +113,11 @@ export default async function GameReadPage({ params, searchParams }: PostPagePro
                                     ) : null
                                 }
                                 <div className="mt-8 pt-8 border-t border-gray-700">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex space-x-4">
-                                            <button
-                                                className="flex items-center space-x-2 px-4 py-2 bg-gray-700 rounded-button hover:bg-gray-600 rounded-sm">
-                                                <RiThumbUpLine size={18}/>
-                                                <span>좋아요</span>
-                                            </button>
-                                            <button
-                                                className="flex items-center space-x-2 px-4 py-2 bg-gray-700 rounded-button hover:bg-gray-600 rounded-sm">
-                                                <RiShareLine size={18}/>
-                                                <span>공유하기</span>
-                                            </button>
-                                        </div>
-                                        <button
-                                            className="flex items-center space-x-2 text-gray-400 hover:text-indigo-500">
-                                            <RiFlagLine size={18}/>
-                                            <span>신고하기</span>
-                                        </button>
-                                    </div>
+                                    <GamePostReadButton />
                                 </div>
                             </article>
 
-                            <div className="flex items-center justify-between mb-6">
-                                <div className="flex items-center gap-2">
-                                    <Link href={`/games/${game_id}` + ((page) ? `?page=${page}` : '')}
-                                          className="flex items-center space-x-2 px-4 py-2 bg-gray-700 rounded-button hover:bg-gray-600 rounded-sm">
-                                        <RiListView size={18}/>
-                                        <span>목록</span>
-                                    </Link>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Link href={`/games/${game_id}/modify/${post_id}` + ((page) ? `?page=${page}` : '')}
-                                          className="flex items-center space-x-2 px-4 py-2 bg-green-700 rounded-button hover:bg-green-600 rounded-sm">
-                                        <RiEdit2Line size={18} />
-                                        <span>수정</span>
-                                    </Link>
-                                    <Link href={`#`} className="flex items-center space-x-2 px-4 py-2 bg-red-700 rounded-button hover:bg-red-600 rounded-sm">
-                                        <RiDeleteBinLine size={18} />
-                                        <span>삭제</span>
-                                    </Link>
-
-                                </div>
-                            </div>
+                            <GamePostReadManageButton page={page ?? '1'} game_id={game_id} post_id={post_id} />
 
                             <div className="bg-gray-800 rounded-lg p-6">
                                 <h3 className="font-bold mb-6">댓글 89개</h3>

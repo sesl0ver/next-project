@@ -5,7 +5,7 @@ import React, {useState,useEffect} from "react";
 import { useRouter } from "next/navigation";
 import MDEditor from '@uiw/react-md-editor';
 import { toast } from "sonner";
-import {useAtom} from "jotai";
+import {useAtom, useAtomValue} from "jotai";
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import { loadingAtom } from "@/atoms/loadingAtom";
 import { isDirtyAtom } from '@/atoms/isDirtyAtom';
@@ -20,10 +20,13 @@ import GamePostFileList from "@/app/games/component/game-post-file-list";
 import GamePostGuide from "@/app/games/component/game-post-guide";
 import {GameRead} from "@/types/Game";
 import {UploadFile} from "@/types/Post";
-import RedirectInterval from "@/component/RedirectInterval";
+import EnsuredNavigation from "ensured-navigation";
+import {referrerAtom} from "@/atoms/referrerAtom";
 
-export default function GamePostWrite({ game_id, modify_data }: {game_id: string, modify_data: GameRead | null}) {
+
+export default function GamePostWrite({ game_id, modify_data }: {game_id: string, modify_data?: GameRead | null}) {
     const [, setLoading] = useAtom(loadingAtom);
+    const referrer = useAtomValue(referrerAtom);
     const [title, setTitle] = useState('');
     const [files, setFiles] = useState<UploadFile[]>([]);
     const [contents, setContents] = useState('');
@@ -40,7 +43,7 @@ export default function GamePostWrite({ game_id, modify_data }: {game_id: string
         if (isDirty) {
             if (!confirm('변경 사항이 저장되지 않았습니다. 이동하시겠습니까?')) return;
         }
-        router.push(`/games/${game_id}`);
+        router.push(referrer ?? (modify_data) ? `/games/${game_id}/read/${modify_data?.post_id}` : `/games/${game_id}`);
     };
 
     function isValidInput(input: string): boolean {
@@ -118,7 +121,6 @@ export default function GamePostWrite({ game_id, modify_data }: {game_id: string
                 toast.error((`${(modify_data) ? '글수정' : '글작성'}에 실패했습니다.`));
                 return;
             }
-            toast.success((`${(modify_data) ? '글수정' : '글작성'}을 완료했습니다.`));
             // 이미지 업로드 완료 후, blob 리소스 수동 해제
             for (const file of files) {
                 if (file?.realFile) {
@@ -126,7 +128,8 @@ export default function GamePostWrite({ game_id, modify_data }: {game_id: string
                 }
             }
             setIsDirty(false);
-            setUrl(`/games/${game_id}`);
+            toast.success((`${(modify_data) ? '글수정' : '글작성'}을 완료했습니다.`));
+            setUrl(`/games/${game_id}/read/${result.data.post_id}`);
         } catch (e) {
             toast.error(e.message);
         }
@@ -162,8 +165,10 @@ export default function GamePostWrite({ game_id, modify_data }: {game_id: string
 
     return (
         <div className="max-w-5xl mx-auto">
-            <RedirectInterval url={url} onRedirectAction={() => {
-                setLoading(false);
+            <EnsuredNavigation url={url} options={{
+                onSuccess: () => {
+                    setLoading(false);
+                },
             }} />
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center">
@@ -172,9 +177,7 @@ export default function GamePostWrite({ game_id, modify_data }: {game_id: string
                     </button>
                     <h1 className="text-2xl font-bold text-white">글 { (modify_data !== null) ? '수정' : '작성' }</h1>
                 </div>
-                <div className="text-sm text-gray-400">
-                    자유게시판
-                </div>
+                <div className="text-sm text-gray-400"></div>
             </div>
 
             <div className="bg-gray-800 rounded-lg overflow-hidden mb-6">
