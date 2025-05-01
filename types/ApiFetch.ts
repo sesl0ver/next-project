@@ -7,11 +7,12 @@ export interface ApiOptions {
         tags?: string[];             // Tag-based cache
     };
     cache?: RequestCache;
+    credentials?: RequestCredentials;
 }
 
-export interface ApiResponse<T> {
+export interface ApiResponse {
     success: boolean;
     message?: string;
     statusCode?: number;
-    data: T;
+    data?: any;
 }

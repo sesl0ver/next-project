@@ -5,6 +5,7 @@ import Loading from "@/component/SimpleLoading";
 import GamePrice from "@/app/games/component/game-price";
 import {PostPageProps} from "@/types/Post";
 
+
 export default function GamePostWritePage({ params }: PostPageProps) {
     const { game_id, post_id } = use(params);
     return (

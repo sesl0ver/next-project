@@ -1,11 +1,11 @@
 'use client';
 
-import { apiFetch } from "@/lib/apiFetch";
 import { toast } from "sonner";
 import { useAtom } from "jotai";
 import { loadingAtom } from "@/atoms/loadingAtom";
 import { ButtonHTMLAttributes } from "react";
 import {useRouter} from "next/navigation";
+import {removeGamePost} from "@/app/action/games/posts/removeGamePost";
 
 interface RemovePostButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     game_id: string;
@@ -19,12 +19,11 @@ export default function RemovePostButton({game_id, post_id, children, className}
     const handleRemove = async () => {
         try {
             setLoading(true);
-            await apiFetch(`/api/games/posts?game_id=${game_id}&post_id=${post_id}`, {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            });
+            const res = await removeGamePost('DELETE', Number(game_id), Number(post_id));
+            if (! res.success) {
+                toast.error(res.message);
+                return;
+            }
             toast.success("글을 삭제하였습니다.");
             router.push(`/games/${game_id}`);
         } catch (e: any) {

@@ -54,6 +54,5 @@ export interface FileUploadProps {
 
 export interface FileListProps {
     files: UploadFile[];
-    removeUpload: (index: number) => void;
+    handleRemoveFiles: (index: number) => void;
 }
-

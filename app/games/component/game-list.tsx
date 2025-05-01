@@ -1,15 +1,17 @@
 import type {Game, GamePage} from "@/types/Game";
-import {apiFetch} from "@/lib/apiFetch";
 import GameBox from "@/app/games/component/game-box";
-import {Suspense} from "react";
 import Pagination from "@/component/Pagination";
+import {fetch} from "undici";
+import {responseVerify} from "@/utils/responseVerify";
 
-export async function getGames(page: string): Promise<GamePage> {
-    return apiFetch(`${process.env.API_URL}/games?page=${page ?? 1}`);
+export async function getGames(page: string): Promise<any> {
+    const res = await fetch(`${process.env.API_URL}/games?page=${page}`);
+    return responseVerify(res);
 }
 
 export default async function GameList({ page }: { page: string }) {
-    const data: GamePage = await getGames(page);
+    page = page ?? "1";
+    const data = await getGames(page);
     return (
         <>
             <div className="bg-gray-800 rounded-lg p-4 mb-6">

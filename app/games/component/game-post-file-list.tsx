@@ -2,7 +2,7 @@ import { FileListProps } from "@/types/Post";
 import { RiDeleteBinLine, RiImageLine } from "@remixicon/react";
 import { filesize } from "filesize";
 
-const GamePostFileList: React.FC<FileListProps> = ({ files, removeUpload }) => {
+const GamePostFileList: React.FC<FileListProps> = ({ files, handleRemoveFiles }) => {
     return (
         <div className="mt-4 space-y-2">
             {files.map((file, idx) => (
@@ -17,7 +17,7 @@ const GamePostFileList: React.FC<FileListProps> = ({ files, removeUpload }) => {
                         </div>
                     </div>
                     <button type="button" className="text-gray-400 hover:text-red-400"
-                            onClick={() => removeUpload(idx)}>
+                            onClick={() => handleRemoveFiles(idx)}>
                         <div className="w-6 h-6 flex items-center justify-center">
                             <RiDeleteBinLine />
                         </div>

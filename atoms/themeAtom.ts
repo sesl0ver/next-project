@@ -1,22 +1,29 @@
-import { atom } from 'jotai';
+'use client'
 
-// 기본값은 'light'로 설정 (SSR 안전)
-export const themeAtom = atom<'light' | 'dark'>('light');
+import { atom } from 'jotai'
 
-// 클라이언트에서 테마를 동기화하는 atom
-export const syncedThemeAtom = atom(
-    (get) => get(themeAtom),
-    (get, set, newTheme: 'light' | 'dark') => {
-        set(themeAtom, newTheme);
+// 쿠키에서 theme 값을 읽어오는 유틸
+function getCookieTheme(): 'dark' | '' {
+    if (typeof document === 'undefined') return ''
+    const m = document.cookie.match(/(?:^|;\s*)theme=(dark|)(?:;|$)/)
+    return m ? (m[1] as 'dark' | '') : ''
+}
 
-        if (typeof window !== 'undefined') {
-            localStorage.setItem('theme', newTheme);
+// 쿠키에 theme 값을 쓰는 유틸
+function setCookieTheme(value: 'dark' | '') {
+    // 1년짜리, 경로 전체에 적용
+    document.cookie = `theme=${value}; path=/; max-age=${60 * 60 * 24 * 365}`
+}
 
-            if (newTheme === 'dark') {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
-        }
+// 테마 atom: 읽기 시 쿠키, 쓰기 시 쿠키 + html 클래스 적용
+export const themeAtom = atom(
+    getCookieTheme(),
+    (_get, set, newTheme: 'dark' | '') => {
+        // 1) 쿠키에 저장
+        setCookieTheme(newTheme)
+        // 2) <html> 클래스 토글
+        document.documentElement.classList.toggle('dark', newTheme === 'dark')
+        // 3) atom 상태 업데이트
+        set(themeAtom, newTheme)
     }
-);
+)

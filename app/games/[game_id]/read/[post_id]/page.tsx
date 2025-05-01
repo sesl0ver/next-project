@@ -8,7 +8,6 @@ import {filesize} from "filesize";
 import {GameRead} from "@/types/Game";
 import {PostPageProps} from "@/types/Post";
 import {Categories} from "@/constants/categories";
-import {apiFetch} from "@/lib/apiFetch";
 import {getRelativeTime} from "@/lib/RelativeTime";
 import Loading from "@/component/SimpleLoading";
 import MarkdownReader from "@/component/MarkdownReader";
@@ -22,15 +21,20 @@ import GamePostReadButton from "@/app/games/component/game-post-read-button";
 import GamePostReadManageButton from "@/app/games/component/game-post-read-manage-button";
 import GamePostReadTopButton from "@/app/games/component/game-post-read-top-button";
 import GamePostLikeButton from "@/app/games/component/game-post-like-button";
+import {responseVerify} from "@/utils/responseVerify";
+import {getUserFromCookie} from "@/utils/getUserFromCookie";
 
-export async function getGamePostRead (game_id: string, post_id: string): Promise<GameRead> {
-    return apiFetch(`${process.env.API_URL}/games/${game_id}/posts/${post_id}`);
+export async function getGamePostRead(game_id: string, post_id: string): Promise<any> {
+    const res: Response = await fetch(`${process.env.API_URL}/games/${game_id}/posts/${post_id}`);
+    return responseVerify(res);
 }
 
 export default async function GameReadPage({ params, searchParams }: PostPageProps) {
+    const user = await getUserFromCookie();
     const { game_id, post_id } = await params;
     const { page } = await searchParams;
-    const read: GameRead = await getGamePostRead(game_id, post_id);
+    const read = await getGamePostRead(game_id, post_id);
+    const permissions = (user && read.author_id === user.account_id);
     return (
         <div className="grid grid-cols-12 gap-6">
             <div className="hidden lg:block lg:col-span-3">
@@ -71,7 +75,7 @@ export default async function GameReadPage({ params, searchParams }: PostPagePro
                                             <span className="text-sm text-gray-400" title={read.created_date}>{getRelativeTime(read.created_date)}</span><span className="text-sm text-gray-400" title={read.updated_date}>{(read.created_date === read.updated_date) ? null : ` · 수정됨 ${getRelativeTime(read.updated_date)}`}</span>
                                         </div>
                                     </div>
-                                    <GamePostReadTopButton game_id={game_id} post_id={post_id} page={page ?? '1'} />
+                                    <GamePostReadTopButton permissions={permissions} game_id={game_id} post_id={post_id} page={page ?? '1'} />
                                 </div>
                                 <div className="space-y-4">
                                     <div className="flex items-center space-x-2">
@@ -87,7 +91,7 @@ export default async function GameReadPage({ params, searchParams }: PostPagePro
                                     <div className="prose prose-invert max-w-none">
                                         <MarkdownReader value={read.contents}/>
                                     </div>
-                                    <GamePostLikeButton />
+                                    <GamePostLikeButton permissions={permissions} post_id={post_id} current={read._count.likes} />
                                 </div>
                                 {
                                     (read.files.length > 0) ? (
@@ -117,7 +121,7 @@ export default async function GameReadPage({ params, searchParams }: PostPagePro
                                 </div>
                             </article>
 
-                            <GamePostReadManageButton page={page ?? '1'} game_id={game_id} post_id={post_id} />
+                            <GamePostReadManageButton permissions={permissions} page={page ?? '1'} game_id={game_id} post_id={post_id} />
 
                             <div className="bg-gray-800 rounded-lg p-6">
                                 <h3 className="font-bold mb-6">댓글 89개</h3>

@@ -50,6 +50,9 @@ export interface GameRead {
     post_type: 'TALK' | 'QUESTION' | 'TIP' | 'GUIDE' | 'REVIEW' | 'NOTICE';
     title: string;
     updated_date: string;
+    _count: {
+        likes: number;
+    }
 }
 
 export interface GamePageProps {

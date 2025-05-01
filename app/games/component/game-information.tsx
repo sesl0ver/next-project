@@ -9,7 +9,7 @@ export default async function GameInformation(params: { id: string }) {
                     <img src={header_image} alt={title} />
                 </div>
 
-                <div className="py-1 text-sm" dangerouslySetInnerHTML={ {__html: short_description}}></div>
+                <div className="py-1 text-sm">{ short_description }</div>
 
                 <div className="my-3 space-y-2 text-sm">
                     <div>

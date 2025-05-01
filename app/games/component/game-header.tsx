@@ -1,12 +1,13 @@
 import Link from "next/link";
 import {RiHeartLine, RiShareLine, RiSteamFill} from "@remixicon/react";
 import { Game } from "@/types/Game";
-import {apiFetch} from "@/lib/apiFetch";
 import PostShareButton from "@/component/PostShareButton";
 
 
 export async function getGame (id: string): Promise<Game> {
-    return apiFetch(`${process.env.API_URL}/games/${id}`, { cache: 'force-cache', next: { revalidate: 86400 } });
+    const res = await fetch(`${process.env.API_URL}/games/${id}`, { cache: 'force-cache', next: { revalidate: 86400 } });
+    const data = await res.json();
+    return data['data'];
 }
 
 export default async function GameHeader(params: { id: string }) {

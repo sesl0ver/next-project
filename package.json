@@ -25,6 +25,7 @@
     "formidable": "^3.5.3",
     "framer-motion": "^12.7.3",
     "isomorphic-dompurify": "^2.23.0",
+    "jose": "^6.0.10",
     "jotai": "^2.12.3",
     "jsdom": "^26.1.0",
     "next": "^15.3.0",
@@ -33,7 +34,8 @@
     "react-dropzone": "^14.3.8",
     "rehype-sanitize": "^6.0.0",
     "sonner": "^2.0.3",
-    "undici": "^7.8.0"
+    "undici": "^7.8.0",
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.3",

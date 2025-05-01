@@ -4,16 +4,18 @@ import {RiMessage2Line, RiThumbUpLine} from '@remixicon/react';
 import {Categories} from "@/constants/categories";
 import Pagination from "@/component/Pagination";
 import {Post, PostPage} from "@/types/Post";
-import {apiFetch} from "@/lib/apiFetch";
 import GamePostCategory from "@/app/games/component/game-post-category";
 import GamePostUsername from "@/app/games/component/game-post-username";
+import {responseVerify} from "@/utils/responseVerify";
 
-async function getGamePosts(game_id: string, page: string): Promise<PostPage> {
-    return apiFetch(`${process.env.API_URL}/games/${game_id}/posts?page=${page ?? '1'}`)
+async function getGamePosts(game_id: string, page: string): Promise<any> {
+    const res = await fetch(`${process.env.API_URL}/games/${game_id}/posts?page=${page}`);
+    return responseVerify(res);
 }
 
 export default async function GamePostList(params: { game_id: string, page: string }) {
-    const { game_id, page } = await params;
+    const game_id = params.game_id;
+    const page = params.page ?? "1";
     const data: PostPage = await getGamePosts(game_id, page);
     return (
         <>

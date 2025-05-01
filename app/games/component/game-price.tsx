@@ -1,14 +1,15 @@
 import {Price} from "@/types/Game";
-import {apiFetch} from "@/lib/apiFetch";
 import React from "react";
 
-async function getPrice (id: string): Promise<Price> {
-    return apiFetch(`${process.env.API_URL}/games/price/${id}`, { cache: 'force-cache', next: { revalidate: 86400 } });
+async function getPrice (id: string): Promise<any> {
+    const res = await fetch(`${process.env.API_URL}/games/price/${id}`, { cache: 'force-cache', next: { revalidate: 86400 } });
+    return res.json();
 }
 
 export default async function GamePrice(params: { id: string }) {
     try {
-        const data: Price = await getPrice(params['id']);
+        const price: Price = await getPrice(params['id']);
+        const data = price['data'];
         const formatter = new Intl.NumberFormat('ko-KR', {
             style: 'currency',
             currency: 'KRW',

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {s} from "hastscript";
 
 interface NavItem {
     href: string;
@@ -17,7 +18,7 @@ const NavItems: NavItem[] = [
     { href: "#", description: "Menu04" },
 ];
 
-const NavItem = ({ href, children, selected }: { href: string, children: React.ReactNode, selected?: string }) => {
+const NavItem = ({ href, children, selected }: { href: string, children: React.ReactNode, selected: string }) => {
     return (
         <li>
             <Link href={href} scroll={false} className={`text-gray-700 hover:!text-blue-500 dark:text-gray-300 ${selected}`}>
@@ -34,7 +35,7 @@ export default function Navigation() {
             <ul className="flex space-x-8">
                 {
                     NavItems.map(({ href, description }: NavItem, idx: number) => {
-                        return <NavItem key={idx} href={href} selected={(href === pathname) ? `!text-blue-300` : null}>{ description }</NavItem>
+                        return <NavItem key={idx} href={href} selected={(href === pathname) ? `!text-blue-300` : ''}>{ description }</NavItem>
                     })
                 }
             </ul>

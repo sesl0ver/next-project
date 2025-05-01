@@ -9,7 +9,6 @@ import {useAtom, useAtomValue} from "jotai";
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import { loadingAtom } from "@/atoms/loadingAtom";
 import { isDirtyAtom } from '@/atoms/isDirtyAtom';
-import {apiFetch} from "@/lib/apiFetch";
 import {markdownToolbarCommands, markdownYoutubeComponent} from "@/lib/utils";
 import { usePreventNavigation } from '@/hooks/usePreventNavigation';
 import {usePreventBackNavigation} from "@/hooks/usePreventBackNavigation";
@@ -22,17 +21,24 @@ import {GameRead} from "@/types/Game";
 import {UploadFile} from "@/types/Post";
 import EnsuredNavigation from "ensured-navigation";
 import {referrerAtom} from "@/atoms/referrerAtom";
+import {removeFiles} from "@/app/action/games/posts/removeFiles";
+import {writeGamePost} from "@/app/action/games/posts/writeGamePost";
+import {getUserFromCookieClient} from "@/utils/getUserFromCookieClient";
 
 
 export default function GamePostWrite({ game_id, modify_data }: {game_id: string, modify_data?: GameRead | null}) {
-    const [, setLoading] = useAtom(loadingAtom);
+    const router = useRouter();
+    const user = getUserFromCookieClient();
+    if (! user) {
+        router.push(`/login`);
+    }
     const referrer = useAtomValue(referrerAtom);
+    const [, setLoading] = useAtom(loadingAtom);
     const [title, setTitle] = useState('');
     const [files, setFiles] = useState<UploadFile[]>([]);
     const [contents, setContents] = useState('');
     const [category, setCategoryAction] = useState('TALK');
     const [isDirty, setIsDirty] = useAtom(isDirtyAtom);
-    const router = useRouter();
     const [url, setUrl] = useState("");
 
     const handleImageInsert = (imageUrl: string) => {
@@ -59,13 +65,19 @@ export default function GamePostWrite({ game_id, modify_data }: {game_id: string
             }
         }
         if (deleteFile) {
-            setContents(contents.replaceAll(`![첨부파일](${deleteFile.prevUrl})`, ''));
-            setFiles(files.filter((_, i) => i !== x));
             if (deleteFile?.file_id && modify_data) {
                 // 실제 파일 삭제는 modify 모드에서만
-                await apiFetch(`/api/games/posts/removeFile?post_id=${String(modify_data.post_id)}&file_id=${String(deleteFile.file_id)}`, {
-                    method: 'DELETE'
-                });
+                try {
+                    const res = await removeFiles('DELETE', modify_data.post_id, deleteFile.file_id);
+                    if (! res.success) {
+                        toast.error(res.message);
+                        return;
+                    }
+                    setContents(contents.replaceAll(`![첨부파일](${deleteFile.prevUrl})`, ''));
+                    setFiles(files.filter((_, i) => i !== x));
+                } catch (error) {
+                    console.error(error);
+                }
             }
         }
     }
@@ -99,7 +111,6 @@ export default function GamePostWrite({ game_id, modify_data }: {game_id: string
         formData.append('title', title);
         formData.append('contents', contents);
         formData.append('post_type', category);
-        formData.append('author_id', String(2)); // TODO 임시값.
         formData.append('app_id', String(game_id));
         if (modify_data) {
             formData.append('post_id', String(modify_data.post_id));
@@ -113,14 +124,13 @@ export default function GamePostWrite({ game_id, modify_data }: {game_id: string
 
         setLoading(true);
         try {
-            const result: { success: boolean, data: any } = await apiFetch(`/api/games/posts`, {
-                method: (modify_data) ? 'PUT' : 'POST',
-                body: formData,
-            });
-            if (! result.success) {
-                toast.error((`${(modify_data) ? '글수정' : '글작성'}에 실패했습니다.`));
+            const res = await writeGamePost((modify_data) ? 'PUT' : 'POST', formData);
+            if (! res.success) {
+                toast.error((res.message));
+                setLoading(false);
                 return;
             }
+
             // 이미지 업로드 완료 후, blob 리소스 수동 해제
             for (const file of files) {
                 if (file?.realFile) {
@@ -129,7 +139,7 @@ export default function GamePostWrite({ game_id, modify_data }: {game_id: string
             }
             setIsDirty(false);
             toast.success((`${(modify_data) ? '글수정' : '글작성'}을 완료했습니다.`));
-            setUrl(`/games/${game_id}/read/${result.data.post_id}`);
+            setUrl(`/games/${game_id}/read/${res.data.post_id}`);
         } catch (e) {
             toast.error(e.message);
         }
@@ -211,7 +221,7 @@ export default function GamePostWrite({ game_id, modify_data }: {game_id: string
 
                         <GamePostFileUpload files={files} setFiles={setFiles} handleImageInsert={handleImageInsert} />
 
-                        <GamePostFileList files={files} removeUpload={removeUpload} />
+                        <GamePostFileList files={files} handleRemoveFiles={removeUpload} />
                     </div>
 
                     <div className="border-t border-gray-700 mb-6"></div>

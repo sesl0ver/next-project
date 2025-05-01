@@ -1,8 +1,9 @@
 import Link from "next/link";
 import Navigation from "./Navigation";
-import { RiMenuLine, RiSearchLine } from '@remixicon/react';
+import {RiMenuLine, RiSearchLine} from '@remixicon/react';
 import { Pacifico } from 'next/font/google';
-import ThemeProvider from '@/lib/ThemeToggle';
+import ThemeToggle from '@/lib/ThemeToggle';
+import LoginButton from "@/component/LoginButton";
 
 const logoFont = Pacifico({
     subsets: ['latin'],
@@ -10,7 +11,7 @@ const logoFont = Pacifico({
     display: 'swap',
 })
 
-export default function Header() {
+export default function Header({ initialTheme }) {
     return (
         <header className="shadow-sm w-full bg-gray-200 dark:bg-gray-800">
             <div className="container mx-auto px-4">
@@ -22,11 +23,10 @@ export default function Header() {
                             <RiSearchLine size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                         </div>
                     </div>
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center gap-2">
                         <div className="hidden md:block">
-                            <button className="px-4 py-2 mx-1 bg-green-600 text-white rounded-xl text-sm hover:bg-green-800">로그인</button>
-                            <button className="px-4 py-2 mx-1 bg-indigo-600 text-white rounded-xl text-sm hover:bg-indigo-800">회원가입</button>
-                            <ThemeProvider />
+                            <LoginButton />
+                            <ThemeToggle initialTheme={initialTheme} />
                         </div>
 
                         <div className="md:hidden">
